@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "The Weaver’s Lullaby",
+      "hasCanvas": true,
+      "bodyTextLen": 208,
+      "bodyTextHash": "702899245897d068752d477a8bfee2baa9044a987f460048f1fd01743c2b5aa4",
+      "bodyTextPrefix": "THE WEAVER’S LULLABY 0007 / 12604120 QUIET Hush little ant, don’",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "The Weaver’s Lullaby",
+      "hasCanvas": true,
+      "bodyTextLen": 208,
+      "bodyTextHash": "cdcbb61f154185c97ccae6d33c54c959e3bdd1964538de34cbf47975d69ea61f",
+      "bodyTextPrefix": "THE WEAVER’S LULLABY 0006 / 12604120 QUIET Hush little ant, don’",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #08060a;
+  --color-surface: #121014;
+  --color-ivory: #ece6dc;
+  --color-muted: #8a8078;
+  --color-thread: #b4232c;
+  --color-ember: #c45c3e;
+  --color-gold: #e8c36a;
+  --color-violet: #6b3fa0;
+  --color-border: color-mix(in oklab, var(--color-ivory) 14%, transparent);
+
+  --font-display: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-slow: 400ms;
+  --motion-emphasis: 500ms;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-void);
+    color: var(--color-ivory);
+    height: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    height: 100%;
+    margin: 0;
+    background: var(--color-void);
+    color: var(--color-ivory);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+}
+
+.verse-enter > * {
+  animation: verse-rise var(--motion-emphasis) var(--ease-out) both;
+}
+
+.bloom-burst {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: radial-gradient(circle at 50% 40%, color-mix(in oklab, var(--color-thread) 42%, transparent), transparent 58%);
+  animation: bloom-open var(--motion-emphasis) var(--ease-out) both;
+}
+
+.breath {
+  background: radial-gradient(circle at 50% 40%, color-mix(in oklab, var(--color-thread) 18%, transparent), transparent 62%);
+  animation: field-breath 5.6s ease-in-out infinite;
+}
+
+.room-bloom {
+  animation: room-open var(--motion-slow) var(--ease-out) both;
+}
+
+@keyframes verse-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes bloom-open {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+@keyframes field-breath {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes room-open {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verse-enter > *,
+  .bloom-burst,
+  .room-bloom,
+  .breath {
+    animation: none;
+  }
+}
