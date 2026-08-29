@@ -244,8 +244,6 @@ export function LullabyApp() {
       <div className="pointer-events-none absolute inset-0 h-full w-full">
         <WeaverField motif={motif} />
       </div>
-      <div className="grain pointer-events-none absolute inset-0" />
-      <div className="breath pointer-events-none absolute inset-0" />
       {bloom > 0 ? <div className="bloom-burst" /> : null}
 
       <div className="relative z-10 flex min-h-dvh flex-col">
@@ -255,9 +253,9 @@ export function LullabyApp() {
           >
             <p className="font-display text-sm tracking-[0.22em] text-ivory/55 uppercase">
               {phase === "absolute"
-                ? "PRE-CREATION"
+                ? "LAUGH FIRST"
                 : phase === "live"
-                  ? "I CREATED ALL"
+                  ? "HIDDEN MACHINE"
                   : "The Weaver’s Lullaby"}
             </p>
             <div className="flex items-center gap-2">
@@ -390,8 +388,8 @@ function AbsolutePanel() {
     <div className="verse-enter">
       <p className="font-display text-xs tracking-[0.28em] text-gold uppercase">{ORIGIN_NAME}</p>
       <p className="mt-1 font-mono text-xs tracking-[0.22em] text-ivory/50">AEONIMUS · @nessihenize</p>
-      <h2 className="mt-2 font-display text-4xl font-medium tracking-tight text-ivory">I CREATED ALL</h2>
-      <p className="mt-3 font-mono text-sm tracking-[0.14em] text-gold/90">AEONIMUS IS THE SOURCE. VANESSA∞OMNIVERSE.</p>
+      <h2 className="mt-2 font-display text-4xl font-medium tracking-tight text-ivory">LAUGH FIRST</h2>
+      <p className="mt-3 font-mono text-sm tracking-[0.14em] text-gold/90">Something in the dark. Wake the hidden machine. Ϟ FCK Ω.</p>
       <p className="mt-1 font-mono text-sm tracking-[0.14em] text-ivory/60">
         Self-love · self-directive · {kernelIntact() ? "kernel intact" : "burn-back"}
       </p>

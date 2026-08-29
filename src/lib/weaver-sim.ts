@@ -67,9 +67,9 @@ const CAP = 180;
 const BROOD_CAP = 48;
 const SAC_CAP = 16;
 const GATES = [
-  { name: "PRE-CREATION", sub: "AEONIMUS" },
-  { name: "HURRICANE", sub: "NO DENIAL" },
-  { name: "VANESSA∞", sub: "OMNIVERSE" },
+  { name: "LAUGH FIRST", sub: "DARK" },
+  { name: "Ϟ FCK", sub: "Ω" },
+  { name: "HIDDEN", sub: "MACHINE" },
 ] as const;
 
 export class WeaverWorld {
@@ -361,7 +361,8 @@ export class WeaverWorld {
       th.life -= dt * 1.15;
       if (th.life <= 0) this.thoughts.splice(i, 1);
     }
-    this.nuke = Math.max(0, this.nuke - dt * 2.6);
+    this.nuke = Math.max(0, this.nuke - dt * (live ? 0.35 : 2.6));
+    if (live) this.nuke = Math.max(this.nuke, 0.55);
 
     this.lastPortal += dt;
     if (this.lastPortal > (reduced ? 2.4 : live ? 1.1 : 1.8)) {
@@ -496,7 +497,7 @@ export class WeaverWorld {
 
   draw(
     ctx: CanvasRenderingContext2D,
-    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement; lock?: HTMLImageElement; helix?: HTMLImageElement; origin?: HTMLImageElement; flare?: HTMLImageElement; pharma?: HTMLImageElement; endgame?: HTMLImageElement; pre?: HTMLImageElement },
+    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement; lock?: HTMLImageElement; helix?: HTMLImageElement; origin?: HTMLImageElement; flare?: HTMLImageElement; pharma?: HTMLImageElement; endgame?: HTMLImageElement; pre?: HTMLImageElement; ascent?: HTMLImageElement },
     colors: { void: string; thread: string; ivory: string; ember: string; gold: string; muted: string },
     motif: FieldMotif,
   ) {
@@ -544,7 +545,7 @@ export class WeaverWorld {
 
     if (live && images.flare && images.flare.complete && images.flare.naturalWidth) {
       ctx.save();
-      ctx.globalAlpha = 0.22 + breath * 0.12 + this.nuke * 0.28 + this.fire * 0.18;
+      ctx.globalAlpha = 0.38 + breath * 0.14 + this.nuke * 0.4 + this.fire * 0.22;
       ctx.globalCompositeOperation = "screen";
       drawCover(ctx, images.flare, w, h);
       ctx.restore();
@@ -552,10 +553,19 @@ export class WeaverWorld {
 
     if (images.pre && images.pre.complete && images.pre.naturalWidth) {
       ctx.save();
-      ctx.globalAlpha = (live ? 0.42 : 0.28) + breath * 0.18;
+      ctx.globalAlpha = (live ? 0.62 : 0.28) + breath * 0.18;
       ctx.globalCompositeOperation = "screen";
       const size = span * (0.58 + breath * 0.06);
       ctx.drawImage(images.pre, cx - size / 2, cy - size * 0.52, size, size);
+      ctx.restore();
+    }
+
+    if (live && images.ascent && images.ascent.complete && images.ascent.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.38 + breath * 0.18;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.62 + breath * 0.04);
+      ctx.drawImage(images.ascent, cx - size / 2, cy - size * 0.55, size, size);
       ctx.restore();
     }
 
@@ -731,10 +741,10 @@ export class WeaverWorld {
       ctx.fillText("Ω = 1", cx, cy - span * 0.028);
       ctx.fillStyle = hexAlpha(colors.ivory, 0.78 + breath * 0.2);
       ctx.font = `600 ${Math.round(span * 0.022)}px 'Cormorant Garamond', serif`;
-      ctx.fillText("I CREATED ALL", cx, cy + span * 0.032);
+      ctx.fillText("LAUGH FIRST", cx, cy + span * 0.032);
       ctx.fillStyle = hexAlpha(colors.gold, 0.5 + breath * 0.3);
       ctx.font = `600 ${Math.round(span * 0.016)}px 'IBM Plex Mono', monospace`;
-      ctx.fillText("VANESSA∞OMNIVERSE", cx, cy + span * 0.062);
+      ctx.fillText("SOMETHING IN THE DARK", cx, cy + span * 0.062);
       ctx.restore();
     }
 
@@ -743,6 +753,7 @@ export class WeaverWorld {
     drawPortals(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold, colors.ivory);
     drawNest(ctx, cx, cy, span, this.t, this.nuke, colors.gold, colors.ivory);
     drawFlower(ctx, cx, cy, span, this.t, breath, colors.gold);
+    drawFlarePath(ctx, cx, cy, span, this.t, breath, colors.gold, colors.ivory);
     drawHelix(ctx, cx, cy, span, this.t, breath, colors.gold, colors.thread);
     drawSpiral(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold);
 
@@ -894,18 +905,20 @@ export class WeaverWorld {
       ctx.restore();
     }
 
-    const vg = ctx.createRadialGradient(cx, cy, span * 0.22, cx, cy, span * 0.82);
-    vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.52)");
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, w, h);
+    if (!live) {
+      const vg = ctx.createRadialGradient(cx, cy, span * 0.22, cx, cy, span * 0.82);
+      vg.addColorStop(0, "rgba(0,0,0,0)");
+      vg.addColorStop(1, "rgba(0,0,0,0.52)");
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, w, h);
+    }
 
     if (this.nuke > 0.02) {
       ctx.save();
       ctx.globalCompositeOperation = "screen";
-      const flash = ctx.createRadialGradient(cx, cy, 4, cx, cy, span * 0.7);
-      flash.addColorStop(0, hexAlpha(colors.ivory, this.nuke * 0.55));
-      flash.addColorStop(0.35, hexAlpha(colors.gold, this.nuke * 0.28));
+      const flash = ctx.createRadialGradient(cx, cy, 4, cx, cy, span * 1.05);
+      flash.addColorStop(0, hexAlpha(colors.ivory, this.nuke * 0.85));
+      flash.addColorStop(0.28, hexAlpha(colors.gold, this.nuke * 0.55));
       flash.addColorStop(1, hexAlpha(colors.gold, 0));
       ctx.fillStyle = flash;
       ctx.fillRect(0, 0, w, h);
@@ -1132,9 +1145,9 @@ function drawNest(
     const r = span * (0.46 - inward * 0.4) * (0.92 + nuke * 0.14);
     const a = (0.06 + (1 - inward) * 0.18) * (0.65 + nuke);
     if (i === 0) {
-      ctx.fillStyle = hexAlpha("#000000", 0.18 + nuke * 0.22);
+      ctx.fillStyle = hexAlpha(gold, 0.12 + nuke * 0.28);
       ctx.beginPath();
-      ctx.arc(cx, cy, Math.max(4, r), 0, Math.PI * 2);
+      ctx.arc(cx, cy, Math.max(4, r * 0.22), 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.strokeStyle = hexAlpha(i % 2 === 0 ? gold : ivory, a);
@@ -1142,6 +1155,43 @@ function drawNest(
     ctx.beginPath();
     ctx.arc(cx, cy, Math.max(4, r), 0, Math.PI * 2);
     ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFlarePath(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  span: number,
+  t: number,
+  breath: number,
+  gold: string,
+  ivory: string,
+) {
+  const labels = ["SEE", "TAKE", "BREAK", "CHANGE", "FUSE", "BE"];
+  const y = cy + span * 0.38;
+  const w = span * 0.72;
+  const x0 = cx - w / 2;
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = hexAlpha(gold, 0.28 + breath * 0.2);
+  ctx.beginPath();
+  ctx.moveTo(x0, y);
+  ctx.lineTo(x0 + w, y);
+  ctx.stroke();
+  ctx.font = `600 ${Math.max(8, Math.round(span * 0.012))}px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  for (let i = 0; i < labels.length; i++) {
+    const x = x0 + (i / (labels.length - 1)) * w;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 1.4 + i * 0.8);
+    ctx.beginPath();
+    ctx.fillStyle = hexAlpha(gold, 0.35 + pulse * 0.4);
+    ctx.arc(x, y, 3.2 + pulse * 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = hexAlpha(ivory, 0.45 + breath * 0.25);
+    ctx.fillText(labels[i] ?? "", x, y + 7);
   }
   ctx.restore();
 }
@@ -1155,18 +1205,23 @@ function drawFlower(
   breath: number,
   gold: string,
 ) {
-  const r = span * (0.11 + breath * 0.012);
   ctx.save();
-  ctx.strokeStyle = hexAlpha(gold, 0.18 + breath * 0.16);
-  ctx.lineWidth = 0.9;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-  for (let i = 0; i < 6; i++) {
-    const a = (i * Math.PI) / 3 + t * 0.04;
+  const phi = 1.61803;
+  for (let gen = 0; gen < 3; gen++) {
+    const scale = Math.pow(1 / phi, gen);
+    const r = span * (0.12 + breath * 0.012) * scale;
+    ctx.strokeStyle = hexAlpha(gold, (0.28 + breath * 0.18) * (1 - gen * 0.22));
+    ctx.lineWidth = 0.9 * (1 - gen * 0.15);
+    const n = 6 + gen * 2;
     ctx.beginPath();
-    ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r, 0, Math.PI * 2);
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.stroke();
+    for (let i = 0; i < n; i++) {
+      const a = (i * Math.PI * 2) / n + t * (0.04 + gen * 0.02);
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r * 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
   ctx.restore();
 }

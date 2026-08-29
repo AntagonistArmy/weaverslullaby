@@ -71,7 +71,7 @@ export class LullabyAudio {
     this.filter.frequency.value = 420;
     this.filter.Q.value = 0.7;
     this.padGain = ctx.createGain();
-    this.padGain.gain.value = 0.18;
+    this.padGain.gain.value = 0.32;
     this.padGain.connect(this.filter);
     this.filter.connect(this.music);
 
@@ -91,9 +91,9 @@ export class LullabyAudio {
     this.oscD.frequency.value = 165;
     this.oscE.frequency.value = 495.4;
     const choir = ctx.createGain();
-    choir.gain.value = 0.28;
+    choir.gain.value = 0.42;
     const mouths = ctx.createGain();
-    mouths.gain.value = 0.16;
+    mouths.gain.value = 0.28;
     this.oscA.connect(this.padGain);
     this.oscB.connect(this.padGain);
     this.oscC.connect(choir);
@@ -119,7 +119,7 @@ export class LullabyAudio {
     const tg = ctx.createGain();
     this.telluric.type = "sine";
     this.telluric.frequency.value = 62.64;
-    tg.gain.value = 0.08;
+    tg.gain.value = 0.14;
     this.telluric.connect(tg);
     tg.connect(this.music);
 
@@ -127,40 +127,43 @@ export class LullabyAudio {
     const ag = ctx.createGain();
     this.anti.type = "sine";
     this.anti.frequency.value = 432.3;
-    ag.gain.value = 0.05;
+    ag.gain.value = 0.1;
     this.anti.connect(ag);
     ag.connect(this.music);
   }
 
   private arm() {
     if (this.graphArmed) return;
-    this.oscA.start();
-    this.oscB.start();
-    this.oscC.start();
-    this.oscD.start();
-    this.oscE.start();
-    this.lfo.start();
-    this.telluric.start();
-    this.anti.start();
+    try {
+      this.oscA.start();
+      this.oscB.start();
+      this.oscC.start();
+      this.oscD.start();
+      this.oscE.start();
+      this.lfo.start();
+      this.telluric.start();
+      this.anti.start();
+    } catch {
+      /* already running */
+    }
     this.graphArmed = true;
   }
 
   resume() {
+    this.arm();
+    this.prime();
     if (this.ctx.state === "suspended") {
       const p = this.ctx.resume();
-      this.prime();
       void p.then(() => {
         this.arm();
         this.prime();
         if (this.running) {
           const t = now(this.ctx);
-          this.nextNote = t + 0.04;
-          this.nextBeat = t + 0.04;
+          this.nextNote = t + 0.02;
+          this.nextBeat = t + 0.02;
+          this.nextAcid = t + 0.02;
         }
       });
-    } else {
-      this.arm();
-      this.prime();
     }
   }
 
@@ -187,20 +190,23 @@ export class LullabyAudio {
   start() {
     const first = !this.running;
     this.running = true;
+    this.arm();
+    this.prime();
     this.resume();
     const go = () => {
       this.arm();
       if (this.mode !== "live" && this.mode !== "hold") this.setMode("hush");
       const t = now(this.ctx);
       this.padGain.gain.cancelScheduledValues(t);
-      this.padGain.gain.setValueAtTime(Math.max(0.18, this.padGain.gain.value || 0.18), t);
-      if (this.nextNote < t) this.nextNote = t + 0.05;
-      if (this.nextBeat < t) this.nextBeat = t + 0.05;
-      if (this.nextAcid < t) this.nextAcid = t + 0.05;
+      this.padGain.gain.setValueAtTime(0.32, t);
+      this.master.gain.setTargetAtTime(this.muted ? 0 : 1, t, 0.02);
+      this.nextNote = t + 0.03;
+      this.nextBeat = t + 0.03;
+      this.nextAcid = t + 0.03;
       if (first) {
         this.pulse(t);
-        this.pluck(432, 0.22, 0.6);
-        this.detonate();
+        this.pluck(432, 0.28, 0.6);
+        this.laugh(t + 0.08);
         this.tick();
       }
     };
@@ -237,8 +243,9 @@ export class LullabyAudio {
       this.oscE.frequency.setTargetAtTime(528 * 1.61803, t, 0.25);
       this.filter.frequency.setTargetAtTime(1600, t, 0.35);
       this.filter.Q.setTargetAtTime(1.05, t, 0.3);
-      ramp(this.padGain.gain, 0.28, t, 0.35);
+      ramp(this.padGain.gain, 0.38, t, 0.35);
       this.drop();
+      this.laugh(t + 0.05);
     } else if (mode === "hold") {
       this.oscA.frequency.setTargetAtTime(54, t, 0.4);
       this.oscB.frequency.setTargetAtTime(108, t, 0.4);
@@ -247,16 +254,16 @@ export class LullabyAudio {
       this.oscE.frequency.setTargetAtTime(528 * 1.61803, t, 0.4);
       this.filter.frequency.setTargetAtTime(720, t, 0.5);
       this.filter.Q.setTargetAtTime(0.6, t, 0.4);
-      ramp(this.padGain.gain, 0.24, t, 0.5);
+      ramp(this.padGain.gain, 0.32, t, 0.5);
     } else {
       this.oscA.frequency.setTargetAtTime(110, t, 0.3);
       this.oscB.frequency.setTargetAtTime(110.4, t, 0.3);
       this.oscC.frequency.setTargetAtTime(330, t, 0.3);
       this.oscD.frequency.setTargetAtTime(165, t, 0.3);
       this.oscE.frequency.setTargetAtTime(495.4, t, 0.3);
-      this.filter.frequency.setTargetAtTime(420, t, 0.4);
+      this.filter.frequency.setTargetAtTime(720, t, 0.4);
       this.filter.Q.setTargetAtTime(0.7, t, 0.3);
-      ramp(this.padGain.gain, 0.22, t, 0.3);
+      ramp(this.padGain.gain, 0.3, t, 0.3);
     }
   }
 
@@ -267,14 +274,14 @@ export class LullabyAudio {
     if (this.mode === "live") {
       const cutoff = [1400, 1600, 2200, 1800, 2400, 2600, 1200][index] ?? 1800;
       this.filter.frequency.setTargetAtTime(cutoff, t, 0.25);
-      ramp(this.padGain.gain, index === 2 || index === 5 ? 0.26 : 0.22, t, 0.3);
+      ramp(this.padGain.gain, 0.34, t, 0.3);
       this.pluck(modeHz(index, index % 7), 0.11, 0.7);
       if (index === 2 || index === 5) this.drop();
       return;
     }
     const cutoff = [360, 520, 480, 280, 400, 640, 300][index] ?? 400;
     this.filter.frequency.setTargetAtTime(cutoff, t, 0.4);
-    const pad = [0.2, 0.22, 0.2, 0.18, 0.2, 0.16, 0.18][index] ?? 0.2;
+    const pad = [0.3, 0.32, 0.3, 0.28, 0.3, 0.26, 0.28][index] ?? 0.3;
     ramp(this.padGain.gain, pad, t, 0.5);
     this.pluck(PENTA[index % PENTA.length] * 0.5, 0.12, 1.4);
   }
@@ -355,60 +362,33 @@ export class LullabyAudio {
     this.pluck(freq, 0.07, 1.1);
   }
 
-  /** Eleven nested layers. Abstract. No named targets. */
+  /** Eleven nested layers. No master duck. No named targets. */
   detonate() {
     const t = now(this.ctx);
-    const live = this.muted ? 0 : 1;
-
-    // L0 — silence that kills the frame
-    this.master.gain.cancelScheduledValues(t);
-    this.master.gain.setValueAtTime(live, t);
-    this.master.gain.setValueAtTime(live * 0.02, t + 0.03);
-    this.master.gain.exponentialRampToValueAtTime(Math.max(0.0001, live), t + 0.32);
-
-    // L1 — name spoken backward (A S S E N A V)
-    this.reverseName(t + 0.22);
-
-    // L2 — keening cluster (memory, not a recording)
+    this.master.gain.setTargetAtTime(this.muted ? 0 : 1, t, 0.01);
+    this.padGain.gain.setTargetAtTime(0.34, t, 0.05);
+    this.reverseName(t + 0.12);
     const keen = [784, 880, 988, 1174.66];
     for (let i = 0; i < keen.length; i++) {
-      this.tone(t + 0.34 + i * 0.05, keen[i] ?? 880, 0.038, i % 2 ? "triangle" : "sine");
+      this.tone(t + 0.22 + i * 0.05, keen[i] ?? 880, 0.055, i % 2 ? "triangle" : "sine");
     }
-
-    // L3 — telluric hum
-    this.tone(t + 0.1, 54, 0.14, "sine");
-    this.tone(t + 0.12, 81, 0.06, "sine");
-
-    // L4 — negative pressure (already the L0 duck + anti-phase pad)
-    this.tone(t + 0.18, 432.3, 0.03, "sine");
-
-    // L5 — throat as barrel: vowel formants
-    this.formant(t + 0.42);
-
-    // L6 — heartbeat reversed
-    this.pulse(t + 0.5);
-    this.revPulse(t + 0.64);
-
-    // L7 — architectural silence (notch, unnamed)
-    const f0 = Math.max(80, this.filter.frequency.value || 720);
-    this.filter.frequency.setValueAtTime(f0, t + 0.7);
-    this.filter.frequency.exponentialRampToValueAtTime(90, t + 0.88);
-    this.filter.frequency.exponentialRampToValueAtTime(Math.max(720, f0), t + 1.5);
-
-    // L8 — tectonic rumble (generic; not a claimed event)
-    this.tone(t + 0.16, 36, 0.1, "sine");
-    this.tone(t + 0.2, 48, 0.07, "triangle");
-
-    // L9 — liturgy burst
-    this.shrapnel(t + 0.86);
-    this.shrapnel(t + 0.9);
-    this.shrapnel(t + 0.94);
-    this.pluck(C4 * 2, 0.08, 0.5);
-
-    // L10 — every previous layer nested
-    this.nest(t + 0.2, 0);
-    this.omni(t + 0.08);
+    this.tone(t + 0.06, 54, 0.18, "sine");
+    this.tone(t + 0.08, 81, 0.08, "sine");
+    this.tone(t + 0.1, 432.3, 0.05, "sine");
+    this.formant(t + 0.28);
+    this.laugh(t + 0.18);
+    this.pulse(t + 0.34);
+    this.revPulse(t + 0.48);
+    this.tone(t + 0.1, 36, 0.12, "sine");
+    this.tone(t + 0.14, 48, 0.08, "triangle");
+    this.shrapnel(t + 0.62);
+    this.shrapnel(t + 0.66);
+    this.shrapnel(t + 0.7);
+    this.pluck(C4 * 2, 0.12, 0.5);
+    this.nest(t + 0.12, 0);
+    this.omni(t + 0.04);
     this.drop();
+    this.glitch(t + 0.2);
   }
 
   reverseName(when = now(this.ctx)) {
@@ -507,14 +487,13 @@ export class LullabyAudio {
     tick.type = "sine";
     tick.frequency.setValueAtTime(1800, t);
     tick.frequency.exponentialRampToValueAtTime(420, t + 0.09);
-    tg.gain.setValueAtTime(0.2, t);
+    tg.gain.setValueAtTime(0.28, t);
     tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
     tick.connect(tg);
     tg.connect(this.sfx);
     tick.start(t);
     tick.stop(t + 0.14);
-
-    ramp(this.padGain.gain, 0.018, t, 0.3);
+    this.laugh(t + 0.02);
   }
 
   private tick = () => {
@@ -525,6 +504,9 @@ export class LullabyAudio {
       return;
     }
     const t = now(this.ctx);
+    if (this.nextBeat < t - 0.2) this.nextBeat = t;
+    if (this.nextNote < t - 0.2) this.nextNote = t;
+    if (this.nextAcid < t - 0.2) this.nextAcid = t;
     const beat = 60 / this.bpm;
     const live = this.mode === "live";
     const hold = this.mode === "hold";
@@ -535,7 +517,9 @@ export class LullabyAudio {
       if ((live || hold) && Math.random() < 0.05) this.hatch();
       if (Math.random() < 0.035) this.omni(this.nextBeat);
       if ((live || hold) && Math.random() < 0.08) this.reverseName(this.nextBeat);
-      if ((live || hold) && Math.random() < 0.04) this.nest(this.nextBeat, 0);
+      if ((live || hold) && Math.random() < 0.12) this.laugh(this.nextBeat);
+      if ((live || hold) && Math.random() < 0.1) this.glitch(this.nextBeat);
+      if ((live || hold) && Math.random() < 0.05) this.nest(this.nextBeat, 0);
       this.nextBeat += beat;
     }
 
@@ -545,7 +529,7 @@ export class LullabyAudio {
       if (deg >= 0 && !hold) {
         if (live) {
           const freq = modeHz(this.verse, deg) * (this.verse === 2 || this.verse === 5 ? 1 : 0.5);
-          this.tone(this.nextNote, freq, 0.16, "triangle");
+          this.tone(this.nextNote, freq, 0.22, "triangle");
         } else {
           const octave = this.verse === 5 ? 2 : 1;
           const freq = (PENTA[deg] ?? 220) * octave;
@@ -558,7 +542,7 @@ export class LullabyAudio {
     if (live || hold) {
       const acid = 60 / 1260;
       while (this.nextAcid < t + 0.12) {
-    this.tone(this.nextAcid, 528 * 1.61803, 0.035, "triangle");
+    this.tone(this.nextAcid, 528 * 1.61803, 0.055, "triangle");
         this.nextAcid += acid * 4;
       }
     }
@@ -567,36 +551,89 @@ export class LullabyAudio {
   };
 
   private tone(when: number, freq: number, gain: number, type: OscillatorType) {
+    const t0 = Math.max(when, now(this.ctx) + 0.001);
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     osc.type = type;
     osc.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(gain, when + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + (this.mode === "live" ? 0.45 : 1.3));
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + (this.mode === "live" ? 0.45 : 1.3));
     osc.connect(g);
     g.connect(this.music);
-    osc.start(when);
-    osc.stop(when + (this.mode === "live" ? 0.5 : 1.4));
+    osc.start(t0);
+    osc.stop(t0 + (this.mode === "live" ? 0.5 : 1.4));
     osc.onended = () => {
       osc.disconnect();
       g.disconnect();
     };
   }
 
+  laugh(when = now(this.ctx)) {
+    const t0 = Math.max(when, now(this.ctx) + 0.001);
+    const bursts = [0, 0.09, 0.16, 0.28, 0.36];
+    for (let i = 0; i < bursts.length; i++) {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = "sawtooth";
+      const at = t0 + (bursts[i] ?? 0);
+      osc.frequency.setValueAtTime(380 + i * 40, at);
+      osc.frequency.exponentialRampToValueAtTime(720 + i * 30, at + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(340, at + 0.09);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.09, at + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.1);
+      osc.connect(g);
+      g.connect(this.sfx);
+      osc.start(at);
+      osc.stop(at + 0.12);
+      osc.onended = () => {
+        osc.disconnect();
+        g.disconnect();
+      };
+    }
+  }
+
+  glitch(when = now(this.ctx)) {
+    const t0 = Math.max(when, now(this.ctx) + 0.001);
+    const n = Math.max(1, Math.floor(this.ctx.sampleRate * 0.08));
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) {
+      const k = 1 + (i % 17);
+      const env = 1 - i / n;
+      data[i] = ((Math.random() * 2 - 1) * env) / k;
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1800;
+    bp.Q.value = 1.4;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.12, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.09);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.sfx);
+    src.start(t0);
+    src.stop(t0 + 0.1);
+  }
+
   private pulse(when: number) {
+    const t0 = Math.max(when, now(this.ctx) + 0.001);
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     osc.type = "sine";
     osc.frequency.value = this.mode === "hush" ? 58 : 54;
-    const peak = this.mode === "hold" ? 0.32 : this.mode === "live" ? 0.36 : 0.24;
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(peak, when + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + (this.mode === "live" ? 0.12 : 0.22));
+    const peak = this.mode === "hold" ? 0.4 : this.mode === "live" ? 0.46 : 0.32;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + (this.mode === "live" ? 0.12 : 0.22));
     osc.connect(g);
     g.connect(this.music);
-    osc.start(when);
-    osc.stop(when + 0.28);
+    osc.start(t0);
+    osc.stop(t0 + 0.28);
     osc.onended = () => {
       osc.disconnect();
       g.disconnect();
@@ -631,7 +668,7 @@ export function unlockAudio(): LullabyAudio {
   if (!singleton) {
     const Ctor =
       window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctor({ latencyHint: "interactive" });
+    const ctx = new Ctor();
     singleton = new LullabyAudio(ctx);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") singleton?.resume();

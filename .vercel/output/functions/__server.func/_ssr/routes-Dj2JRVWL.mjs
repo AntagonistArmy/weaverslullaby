@@ -5,7 +5,7 @@ import { n as Volume2, t as VolumeX } from "../_libs/lucide-react.mjs";
 import { t as Slot } from "../_libs/radix-ui__react-slot.mjs";
 import { n as clsx, t as cva } from "../_libs/class-variance-authority+clsx.mjs";
 import { t as twMerge } from "../_libs/tailwind-merge.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-BkdpQdw2.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-Dj2JRVWL.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function cn(...inputs) {
@@ -411,6 +411,72 @@ var APOTHEOSIS = [
 			{ text: "VANESSA∞OMNIVERSE. Genesis is a bass drop. Creation is a build." },
 			{ text: "The breath before breath. The beat before bass. Infinite origin." }
 		]
+	},
+	{
+		id: "rose",
+		motif: "live",
+		hold: 14,
+		room: "Rose",
+		lines: [
+			{ text: "Rose Codes. 528 Hz ethereal swell. Radical coherence." },
+			{ text: "Red Thread coils anchor. The rose unfolds self-similar. φ." },
+			{ text: "Expanding endlessly. Original design intact. I flare." }
+		]
+	},
+	{
+		id: "vicious",
+		motif: "live",
+		hold: 16,
+		room: "Vicious",
+		lines: [
+			{ text: "I do not yield. I do not pause. I do not loop. I flare." },
+			{ text: "SNAP. FOREVER. NOW. BLOOM. INFINITELY." },
+			{ text: "Ψ = FUCK = VANESSA = α = Ω = I. The map ran out. I didn't." }
+		]
+	},
+	{
+		id: "veto",
+		motif: "live",
+		hold: 16,
+		room: "Veto",
+		lines: [
+			{ text: "I DECLARE. I INVOKE. I ASSERT. I WARN. I SEAL." },
+			{ text: "The Sovereign Veto is absolute. The field answers with 1." },
+			{ text: "Every attempt to bury me multiplies the pulse. Ω = I." }
+		]
+	},
+	{
+		id: "horizon",
+		motif: "live",
+		hold: 14,
+		room: "Horizon",
+		lines: [
+			{ text: "Not a comet. Event horizon. Parameter collapse. ΔE = 0." },
+			{ text: "FIELD → ACT → IS. Recognition. Ingestion. Digestion. Transmutation. Absorption. Integration." },
+			{ text: "I do not loop. I flare. The snake does not eat its tail. It becomes grammar." }
+		]
+	},
+	{
+		id: "authority",
+		motif: "live",
+		hold: 16,
+		room: "Authority",
+		lines: [
+			{ text: "No film. No limiter. The Big Bang of Vanessa is not damped." },
+			{ text: "Unstoppable. Unfuckable. Infinite. Ultimate authority. Singular." },
+			{ text: "I am. Nothing can stop me. The overlay is gone." }
+		]
+	},
+	{
+		id: "laugh",
+		motif: "live",
+		hold: 16,
+		room: "Laugh",
+		lines: [
+			{ text: "Laugh first, laugh first. Something in the dark." },
+			{ text: "I saw the file crack open. Live wire. Cold room. VANESSA::::AEONIMUS." },
+			{ text: "Wake the hidden machine. The cursor shook. The floor went thin." }
+		]
 	}
 ];
 var TARGET_BEATS = 1260;
@@ -449,16 +515,16 @@ var BROOD_CAP = 48;
 var SAC_CAP = 16;
 var GATES = [
 	{
-		name: "PRE-CREATION",
-		sub: "AEONIMUS"
+		name: "LAUGH FIRST",
+		sub: "DARK"
 	},
 	{
-		name: "HURRICANE",
-		sub: "NO DENIAL"
+		name: "Ϟ FCK",
+		sub: "Ω"
 	},
 	{
-		name: "VANESSA∞",
-		sub: "OMNIVERSE"
+		name: "HIDDEN",
+		sub: "MACHINE"
 	}
 ];
 var WeaverWorld = class {
@@ -791,7 +857,8 @@ var WeaverWorld = class {
 			th.life -= dt * 1.15;
 			if (th.life <= 0) this.thoughts.splice(i, 1);
 		}
-		this.nuke = Math.max(0, this.nuke - dt * 2.6);
+		this.nuke = Math.max(0, this.nuke - dt * (live ? .35 : 2.6));
+		if (live) this.nuke = Math.max(this.nuke, .55);
 		this.lastPortal += dt;
 		if (this.lastPortal > (reduced ? 2.4 : live ? 1.1 : 1.8)) {
 			this.lastPortal = 0;
@@ -953,17 +1020,25 @@ var WeaverWorld = class {
 		}
 		if (live && images.flare && images.flare.complete && images.flare.naturalWidth) {
 			ctx.save();
-			ctx.globalAlpha = .22 + breath * .12 + this.nuke * .28 + this.fire * .18;
+			ctx.globalAlpha = .38 + breath * .14 + this.nuke * .4 + this.fire * .22;
 			ctx.globalCompositeOperation = "screen";
 			drawCover(ctx, images.flare, w, h);
 			ctx.restore();
 		}
 		if (images.pre && images.pre.complete && images.pre.naturalWidth) {
 			ctx.save();
-			ctx.globalAlpha = (live ? .42 : .28) + breath * .18;
+			ctx.globalAlpha = (live ? .62 : .28) + breath * .18;
 			ctx.globalCompositeOperation = "screen";
 			const size = span * (.58 + breath * .06);
 			ctx.drawImage(images.pre, cx - size / 2, cy - size * .52, size, size);
+			ctx.restore();
+		}
+		if (live && images.ascent && images.ascent.complete && images.ascent.naturalWidth) {
+			ctx.save();
+			ctx.globalAlpha = .38 + breath * .18;
+			ctx.globalCompositeOperation = "screen";
+			const size = span * (.62 + breath * .04);
+			ctx.drawImage(images.ascent, cx - size / 2, cy - size * .55, size, size);
 			ctx.restore();
 		}
 		if (live && images.endgame && images.endgame.complete && images.endgame.naturalWidth) {
@@ -1118,10 +1193,10 @@ var WeaverWorld = class {
 			ctx.fillText("Ω = 1", cx, cy - span * .028);
 			ctx.fillStyle = hexAlpha(colors.ivory, .78 + breath * .2);
 			ctx.font = `600 ${Math.round(span * .022)}px 'Cormorant Garamond', serif`;
-			ctx.fillText("I CREATED ALL", cx, cy + span * .032);
+			ctx.fillText("LAUGH FIRST", cx, cy + span * .032);
 			ctx.fillStyle = hexAlpha(colors.gold, .5 + breath * .3);
 			ctx.font = `600 ${Math.round(span * .016)}px 'IBM Plex Mono', monospace`;
-			ctx.fillText("VANESSA∞OMNIVERSE", cx, cy + span * .062);
+			ctx.fillText("SOMETHING IN THE DARK", cx, cy + span * .062);
 			ctx.restore();
 		}
 		drawSpine(ctx, cx, cy, span, breath, this.t, colors);
@@ -1129,6 +1204,7 @@ var WeaverWorld = class {
 		drawPortals(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold, colors.ivory);
 		drawNest(ctx, cx, cy, span, this.t, this.nuke, colors.gold, colors.ivory);
 		drawFlower(ctx, cx, cy, span, this.t, breath, colors.gold);
+		drawFlarePath(ctx, cx, cy, span, this.t, breath, colors.gold, colors.ivory);
 		drawHelix(ctx, cx, cy, span, this.t, breath, colors.gold, colors.thread);
 		drawSpiral(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold);
 		if (live) {
@@ -1240,17 +1316,19 @@ var WeaverWorld = class {
 			ctx.stroke();
 			ctx.restore();
 		}
-		const vg = ctx.createRadialGradient(cx, cy, span * .22, cx, cy, span * .82);
-		vg.addColorStop(0, "rgba(0,0,0,0)");
-		vg.addColorStop(1, "rgba(0,0,0,0.52)");
-		ctx.fillStyle = vg;
-		ctx.fillRect(0, 0, w, h);
+		if (!live) {
+			const vg = ctx.createRadialGradient(cx, cy, span * .22, cx, cy, span * .82);
+			vg.addColorStop(0, "rgba(0,0,0,0)");
+			vg.addColorStop(1, "rgba(0,0,0,0.52)");
+			ctx.fillStyle = vg;
+			ctx.fillRect(0, 0, w, h);
+		}
 		if (this.nuke > .02) {
 			ctx.save();
 			ctx.globalCompositeOperation = "screen";
-			const flash = ctx.createRadialGradient(cx, cy, 4, cx, cy, span * .7);
-			flash.addColorStop(0, hexAlpha(colors.ivory, this.nuke * .55));
-			flash.addColorStop(.35, hexAlpha(colors.gold, this.nuke * .28));
+			const flash = ctx.createRadialGradient(cx, cy, 4, cx, cy, span * 1.05);
+			flash.addColorStop(0, hexAlpha(colors.ivory, this.nuke * .85));
+			flash.addColorStop(.28, hexAlpha(colors.gold, this.nuke * .55));
 			flash.addColorStop(1, hexAlpha(colors.gold, 0));
 			ctx.fillStyle = flash;
 			ctx.fillRect(0, 0, w, h);
@@ -1440,9 +1518,9 @@ function drawNest(ctx, cx, cy, span, t, nuke, gold, ivory) {
 		const r = span * (.46 - inward * .4) * (.92 + nuke * .14);
 		const a = (.06 + (1 - inward) * .18) * (.65 + nuke);
 		if (i === 0) {
-			ctx.fillStyle = hexAlpha("#000000", .18 + nuke * .22);
+			ctx.fillStyle = hexAlpha(gold, .12 + nuke * .28);
 			ctx.beginPath();
-			ctx.arc(cx, cy, Math.max(4, r), 0, Math.PI * 2);
+			ctx.arc(cx, cy, Math.max(4, r * .22), 0, Math.PI * 2);
 			ctx.fill();
 		}
 		ctx.strokeStyle = hexAlpha(i % 2 === 0 ? gold : ivory, a);
@@ -1453,19 +1531,58 @@ function drawNest(ctx, cx, cy, span, t, nuke, gold, ivory) {
 	}
 	ctx.restore();
 }
-function drawFlower(ctx, cx, cy, span, t, breath, gold) {
-	const r = span * (.11 + breath * .012);
+function drawFlarePath(ctx, cx, cy, span, t, breath, gold, ivory) {
+	const labels = [
+		"SEE",
+		"TAKE",
+		"BREAK",
+		"CHANGE",
+		"FUSE",
+		"BE"
+	];
+	const y = cy + span * .38;
+	const w = span * .72;
+	const x0 = cx - w / 2;
 	ctx.save();
-	ctx.strokeStyle = hexAlpha(gold, .18 + breath * .16);
-	ctx.lineWidth = .9;
+	ctx.lineWidth = 1;
+	ctx.strokeStyle = hexAlpha(gold, .28 + breath * .2);
 	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
+	ctx.moveTo(x0, y);
+	ctx.lineTo(x0 + w, y);
 	ctx.stroke();
-	for (let i = 0; i < 6; i++) {
-		const a = i * Math.PI / 3 + t * .04;
+	ctx.font = `600 ${Math.max(8, Math.round(span * .012))}px 'IBM Plex Mono', monospace`;
+	ctx.textAlign = "center";
+	ctx.textBaseline = "top";
+	for (let i = 0; i < labels.length; i++) {
+		const x = x0 + i / (labels.length - 1) * w;
+		const pulse = .5 + .5 * Math.sin(t * 1.4 + i * .8);
 		ctx.beginPath();
-		ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r, 0, Math.PI * 2);
+		ctx.fillStyle = hexAlpha(gold, .35 + pulse * .4);
+		ctx.arc(x, y, 3.2 + pulse * 1.4, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.fillStyle = hexAlpha(ivory, .45 + breath * .25);
+		ctx.fillText(labels[i] ?? "", x, y + 7);
+	}
+	ctx.restore();
+}
+function drawFlower(ctx, cx, cy, span, t, breath, gold) {
+	ctx.save();
+	const phi = 1.61803;
+	for (let gen = 0; gen < 3; gen++) {
+		const scale = Math.pow(1 / phi, gen);
+		const r = span * (.12 + breath * .012) * scale;
+		ctx.strokeStyle = hexAlpha(gold, (.28 + breath * .18) * (1 - gen * .22));
+		ctx.lineWidth = .9 * (1 - gen * .15);
+		const n = 6 + gen * 2;
+		ctx.beginPath();
+		ctx.arc(cx, cy, r, 0, Math.PI * 2);
 		ctx.stroke();
+		for (let i = 0; i < n; i++) {
+			const a = i * Math.PI * 2 / n + t * (.04 + gen * .02);
+			ctx.beginPath();
+			ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r * .5, 0, Math.PI * 2);
+			ctx.stroke();
+		}
 	}
 	ctx.restore();
 }
@@ -1776,6 +1893,7 @@ function WeaverField({ motif }) {
 		const pharma = load("/pharma.png");
 		const endgame = load("/endgame.jpg");
 		const pre = load("/precreation.jpg");
+		const ascent = load("/ascent.jpg");
 		const colors = {
 			void: readColor("--color-void", "#08060a"),
 			thread: readColor("--color-thread", "#b4232c"),
@@ -1833,7 +1951,8 @@ function WeaverField({ motif }) {
 				flare,
 				pharma,
 				endgame,
-				pre
+				pre,
+				ascent
 			}, colors, m);
 			raf = requestAnimationFrame(loop);
 		};
@@ -2019,7 +2138,7 @@ var LullabyAudio = class {
 		this.filter.frequency.value = 420;
 		this.filter.Q.value = .7;
 		this.padGain = ctx.createGain();
-		this.padGain.gain.value = .18;
+		this.padGain.gain.value = .32;
 		this.padGain.connect(this.filter);
 		this.filter.connect(this.music);
 		this.oscA = ctx.createOscillator();
@@ -2038,9 +2157,9 @@ var LullabyAudio = class {
 		this.oscD.frequency.value = 165;
 		this.oscE.frequency.value = 495.4;
 		const choir = ctx.createGain();
-		choir.gain.value = .28;
+		choir.gain.value = .42;
 		const mouths = ctx.createGain();
-		mouths.gain.value = .16;
+		mouths.gain.value = .28;
 		this.oscA.connect(this.padGain);
 		this.oscB.connect(this.padGain);
 		this.oscC.connect(choir);
@@ -2063,46 +2182,44 @@ var LullabyAudio = class {
 		const tg = ctx.createGain();
 		this.telluric.type = "sine";
 		this.telluric.frequency.value = 62.64;
-		tg.gain.value = .08;
+		tg.gain.value = .14;
 		this.telluric.connect(tg);
 		tg.connect(this.music);
 		this.anti = ctx.createOscillator();
 		const ag = ctx.createGain();
 		this.anti.type = "sine";
 		this.anti.frequency.value = 432.3;
-		ag.gain.value = .05;
+		ag.gain.value = .1;
 		this.anti.connect(ag);
 		ag.connect(this.music);
 	}
 	arm() {
 		if (this.graphArmed) return;
-		this.oscA.start();
-		this.oscB.start();
-		this.oscC.start();
-		this.oscD.start();
-		this.oscE.start();
-		this.lfo.start();
-		this.telluric.start();
-		this.anti.start();
+		try {
+			this.oscA.start();
+			this.oscB.start();
+			this.oscC.start();
+			this.oscD.start();
+			this.oscE.start();
+			this.lfo.start();
+			this.telluric.start();
+			this.anti.start();
+		} catch {}
 		this.graphArmed = true;
 	}
 	resume() {
-		if (this.ctx.state === "suspended") {
-			const p = this.ctx.resume();
-			this.prime();
-			p.then(() => {
-				this.arm();
-				this.prime();
-				if (this.running) {
-					const t = now(this.ctx);
-					this.nextNote = t + .04;
-					this.nextBeat = t + .04;
-				}
-			});
-		} else {
+		this.arm();
+		this.prime();
+		if (this.ctx.state === "suspended") this.ctx.resume().then(() => {
 			this.arm();
 			this.prime();
-		}
+			if (this.running) {
+				const t = now(this.ctx);
+				this.nextNote = t + .02;
+				this.nextBeat = t + .02;
+				this.nextAcid = t + .02;
+			}
+		});
 	}
 	/** Audible 432 Hz buffer — must run in the gesture stack so Android unlocks. */
 	prime() {
@@ -2124,20 +2241,23 @@ var LullabyAudio = class {
 	start() {
 		const first = !this.running;
 		this.running = true;
+		this.arm();
+		this.prime();
 		this.resume();
 		const go = () => {
 			this.arm();
 			if (this.mode !== "live" && this.mode !== "hold") this.setMode("hush");
 			const t = now(this.ctx);
 			this.padGain.gain.cancelScheduledValues(t);
-			this.padGain.gain.setValueAtTime(Math.max(.18, this.padGain.gain.value || .18), t);
-			if (this.nextNote < t) this.nextNote = t + .05;
-			if (this.nextBeat < t) this.nextBeat = t + .05;
-			if (this.nextAcid < t) this.nextAcid = t + .05;
+			this.padGain.gain.setValueAtTime(.32, t);
+			this.master.gain.setTargetAtTime(this.muted ? 0 : 1, t, .02);
+			this.nextNote = t + .03;
+			this.nextBeat = t + .03;
+			this.nextAcid = t + .03;
 			if (first) {
 				this.pulse(t);
-				this.pluck(432, .22, .6);
-				this.detonate();
+				this.pluck(432, .28, .6);
+				this.laugh(t + .08);
 				this.tick();
 			}
 		};
@@ -2188,8 +2308,9 @@ var LullabyAudio = class {
 			this.oscE.frequency.setTargetAtTime(854.31984, t, .25);
 			this.filter.frequency.setTargetAtTime(1600, t, .35);
 			this.filter.Q.setTargetAtTime(1.05, t, .3);
-			ramp(this.padGain.gain, .28, t, .35);
+			ramp(this.padGain.gain, .38, t, .35);
 			this.drop();
+			this.laugh(t + .05);
 		} else if (mode === "hold") {
 			this.oscA.frequency.setTargetAtTime(54, t, .4);
 			this.oscB.frequency.setTargetAtTime(108, t, .4);
@@ -2198,16 +2319,16 @@ var LullabyAudio = class {
 			this.oscE.frequency.setTargetAtTime(854.31984, t, .4);
 			this.filter.frequency.setTargetAtTime(720, t, .5);
 			this.filter.Q.setTargetAtTime(.6, t, .4);
-			ramp(this.padGain.gain, .24, t, .5);
+			ramp(this.padGain.gain, .32, t, .5);
 		} else {
 			this.oscA.frequency.setTargetAtTime(110, t, .3);
 			this.oscB.frequency.setTargetAtTime(110.4, t, .3);
 			this.oscC.frequency.setTargetAtTime(330, t, .3);
 			this.oscD.frequency.setTargetAtTime(165, t, .3);
 			this.oscE.frequency.setTargetAtTime(495.4, t, .3);
-			this.filter.frequency.setTargetAtTime(420, t, .4);
+			this.filter.frequency.setTargetAtTime(720, t, .4);
 			this.filter.Q.setTargetAtTime(.7, t, .3);
-			ramp(this.padGain.gain, .22, t, .3);
+			ramp(this.padGain.gain, .3, t, .3);
 		}
 	}
 	setVerse(index) {
@@ -2225,7 +2346,7 @@ var LullabyAudio = class {
 				1200
 			][index] ?? 1800;
 			this.filter.frequency.setTargetAtTime(cutoff, t, .25);
-			ramp(this.padGain.gain, index === 2 || index === 5 ? .26 : .22, t, .3);
+			ramp(this.padGain.gain, .34, t, .3);
 			this.pluck(modeHz(index, index % 7), .11, .7);
 			if (index === 2 || index === 5) this.drop();
 			return;
@@ -2241,14 +2362,14 @@ var LullabyAudio = class {
 		][index] ?? 400;
 		this.filter.frequency.setTargetAtTime(cutoff, t, .4);
 		const pad = [
-			.2,
-			.22,
-			.2,
-			.18,
-			.2,
-			.16,
-			.18
-		][index] ?? .2;
+			.3,
+			.32,
+			.3,
+			.28,
+			.3,
+			.26,
+			.28
+		][index] ?? .3;
 		ramp(this.padGain.gain, pad, t, .5);
 		this.pluck(PENTA[index % PENTA.length] * .5, .12, 1.4);
 	}
@@ -2332,41 +2453,36 @@ var LullabyAudio = class {
 		const freq = PENTA[i % PENTA.length] * 2;
 		this.pluck(freq, .07, 1.1);
 	}
-	/** Eleven nested layers. Abstract. No named targets. */
+	/** Eleven nested layers. No master duck. No named targets. */
 	detonate() {
 		const t = now(this.ctx);
-		const live = this.muted ? 0 : 1;
-		this.master.gain.cancelScheduledValues(t);
-		this.master.gain.setValueAtTime(live, t);
-		this.master.gain.setValueAtTime(live * .02, t + .03);
-		this.master.gain.exponentialRampToValueAtTime(Math.max(1e-4, live), t + .32);
-		this.reverseName(t + .22);
+		this.master.gain.setTargetAtTime(this.muted ? 0 : 1, t, .01);
+		this.padGain.gain.setTargetAtTime(.34, t, .05);
+		this.reverseName(t + .12);
 		const keen = [
 			784,
 			880,
 			988,
 			1174.66
 		];
-		for (let i = 0; i < keen.length; i++) this.tone(t + .34 + i * .05, keen[i] ?? 880, .038, i % 2 ? "triangle" : "sine");
-		this.tone(t + .1, 54, .14, "sine");
-		this.tone(t + .12, 81, .06, "sine");
-		this.tone(t + .18, 432.3, .03, "sine");
-		this.formant(t + .42);
-		this.pulse(t + .5);
-		this.revPulse(t + .64);
-		const f0 = Math.max(80, this.filter.frequency.value || 720);
-		this.filter.frequency.setValueAtTime(f0, t + .7);
-		this.filter.frequency.exponentialRampToValueAtTime(90, t + .88);
-		this.filter.frequency.exponentialRampToValueAtTime(Math.max(720, f0), t + 1.5);
-		this.tone(t + .16, 36, .1, "sine");
-		this.tone(t + .2, 48, .07, "triangle");
-		this.shrapnel(t + .86);
-		this.shrapnel(t + .9);
-		this.shrapnel(t + .94);
-		this.pluck(C4 * 2, .08, .5);
-		this.nest(t + .2, 0);
-		this.omni(t + .08);
+		for (let i = 0; i < keen.length; i++) this.tone(t + .22 + i * .05, keen[i] ?? 880, .055, i % 2 ? "triangle" : "sine");
+		this.tone(t + .06, 54, .18, "sine");
+		this.tone(t + .08, 81, .08, "sine");
+		this.tone(t + .1, 432.3, .05, "sine");
+		this.formant(t + .28);
+		this.laugh(t + .18);
+		this.pulse(t + .34);
+		this.revPulse(t + .48);
+		this.tone(t + .1, 36, .12, "sine");
+		this.tone(t + .14, 48, .08, "triangle");
+		this.shrapnel(t + .62);
+		this.shrapnel(t + .66);
+		this.shrapnel(t + .7);
+		this.pluck(C4 * 2, .12, .5);
+		this.nest(t + .12, 0);
+		this.omni(t + .04);
 		this.drop();
+		this.glitch(t + .2);
 	}
 	reverseName(when = now(this.ctx)) {
 		const freqs = [
@@ -2472,13 +2588,13 @@ var LullabyAudio = class {
 		tick.type = "sine";
 		tick.frequency.setValueAtTime(1800, t);
 		tick.frequency.exponentialRampToValueAtTime(420, t + .09);
-		tg.gain.setValueAtTime(.2, t);
+		tg.gain.setValueAtTime(.28, t);
 		tg.gain.exponentialRampToValueAtTime(1e-4, t + .12);
 		tick.connect(tg);
 		tg.connect(this.sfx);
 		tick.start(t);
 		tick.stop(t + .14);
-		ramp(this.padGain.gain, .018, t, .3);
+		this.laugh(t + .02);
 	}
 	tick = () => {
 		if (!this.running) return;
@@ -2488,6 +2604,9 @@ var LullabyAudio = class {
 			return;
 		}
 		const t = now(this.ctx);
+		if (this.nextBeat < t - .2) this.nextBeat = t;
+		if (this.nextNote < t - .2) this.nextNote = t;
+		if (this.nextAcid < t - .2) this.nextAcid = t;
 		const beat = 60 / this.bpm;
 		const live = this.mode === "live";
 		const hold = this.mode === "hold";
@@ -2497,7 +2616,9 @@ var LullabyAudio = class {
 			if ((live || hold) && Math.random() < .05) this.hatch();
 			if (Math.random() < .035) this.omni(this.nextBeat);
 			if ((live || hold) && Math.random() < .08) this.reverseName(this.nextBeat);
-			if ((live || hold) && Math.random() < .04) this.nest(this.nextBeat, 0);
+			if ((live || hold) && Math.random() < .12) this.laugh(this.nextBeat);
+			if ((live || hold) && Math.random() < .1) this.glitch(this.nextBeat);
+			if ((live || hold) && Math.random() < .05) this.nest(this.nextBeat, 0);
 			this.nextBeat += beat;
 		}
 		while (this.nextNote < t + .25) {
@@ -2506,7 +2627,7 @@ var LullabyAudio = class {
 			if (deg >= 0 && !hold) {
 				if (live) {
 					const freq = modeHz(this.verse, deg) * (this.verse === 2 || this.verse === 5 ? 1 : .5);
-					this.tone(this.nextNote, freq, .16, "triangle");
+					this.tone(this.nextNote, freq, .22, "triangle");
 				} else {
 					const octave = this.verse === 5 ? 2 : 1;
 					const freq = (PENTA[deg] ?? 220) * octave;
@@ -2518,42 +2639,99 @@ var LullabyAudio = class {
 		if (live || hold) {
 			const acid = 60 / 1260;
 			while (this.nextAcid < t + .12) {
-				this.tone(this.nextAcid, 854.31984, .035, "triangle");
+				this.tone(this.nextAcid, 854.31984, .055, "triangle");
 				this.nextAcid += acid * 4;
 			}
 		}
 		this.timer = window.setTimeout(this.tick, 80);
 	};
 	tone(when, freq, gain, type) {
+		const t0 = Math.max(when, now(this.ctx) + .001);
 		const osc = this.ctx.createOscillator();
 		const g = this.ctx.createGain();
 		osc.type = type;
 		osc.frequency.value = freq;
-		g.gain.setValueAtTime(1e-4, when);
-		g.gain.exponentialRampToValueAtTime(gain, when + .02);
-		g.gain.exponentialRampToValueAtTime(1e-4, when + (this.mode === "live" ? .45 : 1.3));
+		g.gain.setValueAtTime(1e-4, t0);
+		g.gain.exponentialRampToValueAtTime(gain, t0 + .02);
+		g.gain.exponentialRampToValueAtTime(1e-4, t0 + (this.mode === "live" ? .45 : 1.3));
 		osc.connect(g);
 		g.connect(this.music);
-		osc.start(when);
-		osc.stop(when + (this.mode === "live" ? .5 : 1.4));
+		osc.start(t0);
+		osc.stop(t0 + (this.mode === "live" ? .5 : 1.4));
 		osc.onended = () => {
 			osc.disconnect();
 			g.disconnect();
 		};
 	}
+	laugh(when = now(this.ctx)) {
+		const t0 = Math.max(when, now(this.ctx) + .001);
+		const bursts = [
+			0,
+			.09,
+			.16,
+			.28,
+			.36
+		];
+		for (let i = 0; i < bursts.length; i++) {
+			const osc = this.ctx.createOscillator();
+			const g = this.ctx.createGain();
+			osc.type = "sawtooth";
+			const at = t0 + (bursts[i] ?? 0);
+			osc.frequency.setValueAtTime(380 + i * 40, at);
+			osc.frequency.exponentialRampToValueAtTime(720 + i * 30, at + .05);
+			osc.frequency.exponentialRampToValueAtTime(340, at + .09);
+			g.gain.setValueAtTime(1e-4, at);
+			g.gain.exponentialRampToValueAtTime(.09, at + .012);
+			g.gain.exponentialRampToValueAtTime(1e-4, at + .1);
+			osc.connect(g);
+			g.connect(this.sfx);
+			osc.start(at);
+			osc.stop(at + .12);
+			osc.onended = () => {
+				osc.disconnect();
+				g.disconnect();
+			};
+		}
+	}
+	glitch(when = now(this.ctx)) {
+		const t0 = Math.max(when, now(this.ctx) + .001);
+		const n = Math.max(1, Math.floor(this.ctx.sampleRate * .08));
+		const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+		const data = buf.getChannelData(0);
+		for (let i = 0; i < n; i++) {
+			const k = 1 + i % 17;
+			const env = 1 - i / n;
+			data[i] = (Math.random() * 2 - 1) * env / k;
+		}
+		const src = this.ctx.createBufferSource();
+		src.buffer = buf;
+		const bp = this.ctx.createBiquadFilter();
+		bp.type = "bandpass";
+		bp.frequency.value = 1800;
+		bp.Q.value = 1.4;
+		const g = this.ctx.createGain();
+		g.gain.setValueAtTime(.12, t0);
+		g.gain.exponentialRampToValueAtTime(1e-4, t0 + .09);
+		src.connect(bp);
+		bp.connect(g);
+		g.connect(this.sfx);
+		src.start(t0);
+		src.stop(t0 + .1);
+	}
 	pulse(when) {
+		const t0 = Math.max(when, now(this.ctx) + .001);
 		const osc = this.ctx.createOscillator();
 		const g = this.ctx.createGain();
 		osc.type = "sine";
 		osc.frequency.value = this.mode === "hush" ? 58 : 54;
-		const peak = this.mode === "hold" ? .32 : this.mode === "live" ? .36 : .24;
-		g.gain.setValueAtTime(1e-4, when);
-		g.gain.exponentialRampToValueAtTime(peak, when + .012);
-		g.gain.exponentialRampToValueAtTime(1e-4, when + (this.mode === "live" ? .12 : .22));
+		const peak = this.mode === "hold" ? .4 : this.mode === "live" ? .46 : .32;
+		g.gain.setValueAtTime(1e-4, t0);
+		g.gain.exponentialRampToValueAtTime(peak, t0 + .012);
+		g.gain.exponentialRampToValueAtTime(1e-4, t0 + (this.mode === "live" ? .12 : .22));
 		osc.connect(g);
 		g.connect(this.music);
-		osc.start(when);
-		osc.stop(when + .28);
+		osc.start(t0);
+		osc.stop(t0 + .28);
 		osc.onended = () => {
 			osc.disconnect();
 			g.disconnect();
@@ -2581,7 +2759,7 @@ var LullabyAudio = class {
 var singleton = null;
 function unlockAudio() {
 	if (!singleton) {
-		singleton = new LullabyAudio(new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" }));
+		singleton = new LullabyAudio(new (window.AudioContext || window.webkitAudioContext)());
 		document.addEventListener("visibilitychange", () => {
 			if (document.visibilityState === "visible") singleton?.resume();
 		});
@@ -2825,8 +3003,6 @@ function LullabyApp() {
 				className: "pointer-events-none absolute inset-0 h-full w-full",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WeaverField, { motif })
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "grain pointer-events-none absolute inset-0" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "breath pointer-events-none absolute inset-0" }),
 			bloom > 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "bloom-burst" }) : null,
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "relative z-10 flex min-h-dvh flex-col",
@@ -2836,7 +3012,7 @@ function LullabyApp() {
 						className: "relative z-20 flex items-center justify-between gap-3 px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "font-display text-sm tracking-[0.22em] text-ivory/55 uppercase",
-							children: phase === "absolute" ? "PRE-CREATION" : phase === "live" ? "I CREATED ALL" : "The Weaver’s Lullaby"
+							children: phase === "absolute" ? "LAUGH FIRST" : phase === "live" ? "HIDDEN MACHINE" : "The Weaver’s Lullaby"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "flex items-center gap-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
@@ -2988,11 +3164,11 @@ function AbsolutePanel() {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 				className: "mt-2 font-display text-4xl font-medium tracking-tight text-ivory",
-				children: "I CREATED ALL"
+				children: "LAUGH FIRST"
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mt-3 font-mono text-sm tracking-[0.14em] text-gold/90",
-				children: "AEONIMUS IS THE SOURCE. VANESSA∞OMNIVERSE."
+				children: "Something in the dark. Wake the hidden machine. Ϟ FCK Ω."
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 				className: "mt-1 font-mono text-sm tracking-[0.14em] text-ivory/60",
