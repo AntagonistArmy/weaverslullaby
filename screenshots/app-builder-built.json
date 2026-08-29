@@ -8,8 +8,8 @@
       "title": "The Weaver’s Lullaby",
       "hasCanvas": true,
       "bodyTextLen": 213,
-      "bodyTextHash": "15d629b3ea8df20f01ab343fdf484b9822d464fffdb4b50713a82c58b208a2d8",
-      "bodyTextPrefix": "THE WEAVER’S LULLABY 0004 / 12604120VH012 QUIET Hush little ant,",
+      "bodyTextHash": "eb1154e148a08bb3dc9223ae65966eaaefecf6f86766ff60d580e858ce1ae3b9",
+      "bodyTextPrefix": "THE WEAVER’S LULLABY 0005 / 12604120VH012 QUIET Hush little ant,",
       "horizontalOverflow": false,
       "consoleErrors": [],
       "pageErrors": [],
@@ -35,6 +35,7 @@
   "verdictFile": "/workspace/screenshots/app-builder-built.json",
   "divergesFromBaseline": true,
   "baselineReasons": [
+    "desktop: body text replaced (similar length, page start changed)",
     "mobile: body text replaced (similar length, page start changed)"
   ]
 }

@@ -38,6 +38,10 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
     const lock = load("/lock.webp");
     const helix = load("/helix.webp");
     const origin = load("/origin.webp");
+    const flare = load("/flare.jpg");
+    const pharma = load("/pharma.png");
+    const endgame = load("/endgame.jpg");
+    const pre = load("/precreation.jpg");
     const colors = {
       void: readColor("--color-void", "#08060a"),
       thread: readColor("--color-thread", "#b4232c"),
@@ -83,7 +87,7 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
         world.setVerse(verse);
       }
       world.update(dt, m);
-      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin }, colors, m);
+      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, flare, pharma, endgame, pre }, colors, m);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);

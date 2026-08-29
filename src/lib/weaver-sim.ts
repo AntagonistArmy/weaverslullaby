@@ -27,7 +27,7 @@ type Hypha = {
 };
 
 type Spore = { x: number; y: number; vx: number; vy: number; life: number; r: number };
-type Petal = { letter: string; ang: number; bloom: number };
+type Petal = { letter: string; bits: string; k: string; n: string; ang: number; bloom: number; ash: number };
 type Sac = {
   ox: number;
   oy: number;
@@ -66,6 +66,11 @@ function mulberry32(seed: number) {
 const CAP = 180;
 const BROOD_CAP = 48;
 const SAC_CAP = 16;
+const GATES = [
+  { name: "PRE-CREATION", sub: "AEONIMUS" },
+  { name: "HURRICANE", sub: "NO DENIAL" },
+  { name: "VANESSA∞", sub: "OMNIVERSE" },
+] as const;
 
 export class WeaverWorld {
   t = 0;
@@ -97,8 +102,12 @@ export class WeaverWorld {
   constructor() {
     this.petals = BINARY_ROWS.map((row, i) => ({
       letter: row.letter,
+      bits: row.bits,
+      k: row.k,
+      n: row.n,
       ang: -Math.PI / 2 + (i * 2 * Math.PI) / 7,
       bloom: 0.72,
+      ash: 0,
     }));
   }
 
@@ -260,19 +269,21 @@ export class WeaverWorld {
       const opened = Math.max(motif.binary, motif.verse + 1, live ? 7 : 0);
       const target = opened > i ? 0.92 + this.breath * 0.12 : 0.22 + this.breath * 0.12;
       p.bloom += (target - p.bloom) * (1 - Math.exp(-dt * 2.4));
+      const ashTarget = live ? 1 : motif.fire > 0.5 ? 0.7 : 0;
+      p.ash += (ashTarget - p.ash) * (1 - Math.exp(-dt * 1.6));
     }
 
-    if (this.spores.length < (reduced ? 22 : 80) && this.rand() < dt * (live ? 22 : 10)) {
+    if (this.spores.length < (reduced ? 28 : live ? 140 : 80) && this.rand() < dt * (live ? 48 : 10)) {
       const src = this.hyphae[Math.floor(this.rand() * this.hyphae.length)];
       if (src) {
         const tip = this.tip(src);
         this.spores.push({
           x: tip.x,
           y: tip.y,
-          vx: (this.rand() - 0.5) * 18,
-          vy: (this.rand() - 0.55) * 16,
+          vx: (this.rand() - 0.5) * (live ? 42 : 18),
+          vy: (this.rand() - 0.55) * (live ? 36 : 16),
           life: 1,
-          r: 0.6 + this.rand() * 1.6,
+          r: 0.6 + this.rand() * (live ? 2.4 : 1.6),
         });
       }
     }
@@ -281,7 +292,7 @@ export class WeaverWorld {
       if (!s) continue;
       s.x += s.vx * dt;
       s.y += s.vy * dt;
-      s.life -= dt * 0.22;
+      s.life -= dt * (live ? 0.12 : 0.22);
       if (s.life <= 0) this.spores.splice(i, 1);
     }
 
@@ -485,7 +496,7 @@ export class WeaverWorld {
 
   draw(
     ctx: CanvasRenderingContext2D,
-    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement; lock?: HTMLImageElement; helix?: HTMLImageElement; origin?: HTMLImageElement },
+    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement; lock?: HTMLImageElement; helix?: HTMLImageElement; origin?: HTMLImageElement; flare?: HTMLImageElement; pharma?: HTMLImageElement; endgame?: HTMLImageElement; pre?: HTMLImageElement },
     colors: { void: string; thread: string; ivory: string; ember: string; gold: string; muted: string },
     motif: FieldMotif,
   ) {
@@ -528,6 +539,41 @@ export class WeaverWorld {
       ctx.globalAlpha = (live ? 0.38 : 0.26) + breath * 0.16;
       ctx.globalCompositeOperation = "screen";
       drawCover(ctx, images.crown, w, h);
+      ctx.restore();
+    }
+
+    if (live && images.flare && images.flare.complete && images.flare.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.22 + breath * 0.12 + this.nuke * 0.28 + this.fire * 0.18;
+      ctx.globalCompositeOperation = "screen";
+      drawCover(ctx, images.flare, w, h);
+      ctx.restore();
+    }
+
+    if (images.pre && images.pre.complete && images.pre.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = (live ? 0.42 : 0.28) + breath * 0.18;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.58 + breath * 0.06);
+      ctx.drawImage(images.pre, cx - size / 2, cy - size * 0.52, size, size);
+      ctx.restore();
+    }
+
+    if (live && images.endgame && images.endgame.complete && images.endgame.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.16 + breath * 0.1;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.7 + breath * 0.05);
+      ctx.drawImage(images.endgame, cx - size / 2, cy - size * 0.52, size, size);
+      ctx.restore();
+    }
+
+    if (live && images.pharma && images.pharma.complete && images.pharma.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.1 + breath * 0.08;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.55 + breath * 0.04);
+      ctx.drawImage(images.pharma, cx - size / 2, cy - size * 0.48, size, size);
       ctx.restore();
     }
 
@@ -682,19 +728,33 @@ export class WeaverWorld {
       ctx.font = `600 ${Math.round(span * 0.052)}px 'Cormorant Garamond', serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Ω = I", cx, cy - span * 0.028);
-      ctx.fillStyle = hexAlpha(colors.ivory, 0.72 + breath * 0.22);
-      ctx.font = `500 ${Math.round(span * 0.024)}px 'Cormorant Garamond', serif`;
-      ctx.fillText("I SERVE MYSELF", cx, cy + span * 0.032);
+      ctx.fillText("Ω = 1", cx, cy - span * 0.028);
+      ctx.fillStyle = hexAlpha(colors.ivory, 0.78 + breath * 0.2);
+      ctx.font = `600 ${Math.round(span * 0.022)}px 'Cormorant Garamond', serif`;
+      ctx.fillText("I CREATED ALL", cx, cy + span * 0.032);
+      ctx.fillStyle = hexAlpha(colors.gold, 0.5 + breath * 0.3);
+      ctx.font = `600 ${Math.round(span * 0.016)}px 'IBM Plex Mono', monospace`;
+      ctx.fillText("VANESSA∞OMNIVERSE", cx, cy + span * 0.062);
       ctx.restore();
     }
 
     drawSpine(ctx, cx, cy, span, breath, this.t, colors);
+    drawLock(ctx, cx, cy, span, breath, colors.gold, colors.ivory);
     drawPortals(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold, colors.ivory);
     drawNest(ctx, cx, cy, span, this.t, this.nuke, colors.gold, colors.ivory);
     drawFlower(ctx, cx, cy, span, this.t, breath, colors.gold);
     drawHelix(ctx, cx, cy, span, this.t, breath, colors.gold, colors.thread);
     drawSpiral(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold);
+
+    if (live) {
+      ctx.save();
+      ctx.fillStyle = hexAlpha(colors.ember, 0.55 + breath * 0.35 + this.nuke * 0.3);
+      ctx.font = `700 ${Math.round(span * 0.07)}px 'Cormorant Garamond', serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("REVENGE", cx, cy + span * 0.42);
+      ctx.restore();
+    }
 
     if (this.thoughts.length) {
       ctx.save();
@@ -725,7 +785,7 @@ export class WeaverWorld {
       const r = span * (0.22 + p.bloom * 0.07 + breath * 0.02);
       const x = cx + Math.cos(p.ang) * r;
       const y = cy + Math.sin(p.ang) * r;
-      drawPetal(ctx, x, y, p.letter, p.bloom, p.ang, colors, motif.bloom + breath * 0.25);
+      drawPetal(ctx, x, y, p.letter, p.bits, p.k, p.n, p.bloom, p.ang, p.ash, colors, motif.bloom + breath * 0.25);
     }
 
     if (this.bloomRing > 0 && this.bloomRing < 1) {
@@ -1041,6 +1101,16 @@ function drawPortals(
     ctx.beginPath();
     ctx.arc(p.x, p.y, r * 0.45, 0, Math.PI * 2);
     ctx.stroke();
+    const gate = GATES[i % GATES.length];
+    if (i < 3 && gate) {
+      ctx.fillStyle = hexAlpha(ivory, 0.55 + pulse * 0.25);
+      ctx.font = `600 ${Math.max(8, Math.round(span * 0.014))}px 'IBM Plex Mono', monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(gate.name, p.x, p.y + r * 1.4);
+      ctx.fillStyle = hexAlpha(gold, 0.7);
+      ctx.fillText(gate.sub, p.x, p.y + r * 1.4 + span * 0.016);
+    }
   }
   ctx.restore();
 }
@@ -1123,7 +1193,7 @@ function drawHelix(
     ctx.lineWidth = 1.4;
     for (let i = 0; i <= 48; i++) {
       const u = i / 48;
-      const ang = u * Math.PI * 6 + t * 0.7 + s * Math.PI;
+      const ang = u * Math.PI * 2 * 1.61803 + t * 0.7 + s * Math.PI;
       const px = x + Math.cos(ang) * w;
       const py = y0 + u * h;
       if (i === 0) ctx.moveTo(px, py);
@@ -1134,7 +1204,7 @@ function drawHelix(
   ctx.fillStyle = hexAlpha(gold, 0.45);
   for (let i = 0; i < 12; i++) {
     const u = (i + 0.5) / 12;
-    const ang = u * Math.PI * 6 + t * 0.7;
+    const ang = u * Math.PI * 2 * 1.61803 + t * 0.7;
     const ax = x + Math.cos(ang) * w;
     const bx = x + Math.cos(ang + Math.PI) * w;
     const py = y0 + u * h;
@@ -1179,6 +1249,36 @@ function drawSpiral(
     else ctx.lineTo(px, py);
   }
   ctx.stroke();
+  ctx.restore();
+}
+
+function drawLock(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  span: number,
+  breath: number,
+  gold: string,
+  ivory: string,
+) {
+  const s = span * 0.028 * (0.95 + breath * 0.08);
+  const x = cx;
+  const y = cy - span * 0.46;
+  ctx.save();
+  ctx.strokeStyle = hexAlpha(gold, 0.7 + breath * 0.25);
+  ctx.fillStyle = hexAlpha(gold, 0.18 + breath * 0.12);
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(x, y - s * 0.55, s * 0.55, Math.PI, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.roundRect(x - s * 0.7, y - s * 0.15, s * 1.4, s * 1.15, s * 0.12);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = hexAlpha(ivory, 0.55);
+  ctx.beginPath();
+  ctx.arc(x, y + s * 0.35, s * 0.16, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -1305,9 +1405,13 @@ function drawPetal(
   x: number,
   y: number,
   letter: string,
+  bits: string,
+  k: string,
+  n: string,
   bloom: number,
   ang: number,
-  colors: { thread: string; ivory: string },
+  ash: number,
+  colors: { thread: string; ivory: string; ember: string; gold: string },
   burst: number,
 ) {
   ctx.save();
@@ -1316,23 +1420,40 @@ function drawPetal(
   const s = bloom * (1 + burst * 0.22);
   ctx.scale(s, s);
   ctx.globalAlpha = 0.22 + bloom * 0.78;
-  ctx.fillStyle = hexAlpha(colors.thread, 0.22 + bloom * 0.28);
+  const fire = hexAlpha(colors.ember, 0.3 + ash * 0.55);
+  ctx.fillStyle = ash > 0.2 ? fire : hexAlpha(colors.thread, 0.22 + bloom * 0.28);
   ctx.beginPath();
   ctx.ellipse(0, 0, 22, 30, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
   ctx.ellipse(0, -6, 10, 16, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = hexAlpha(colors.ivory, 0.55);
+  ctx.strokeStyle = hexAlpha(ash > 0.4 ? colors.gold : colors.ivory, 0.55);
   ctx.lineWidth = 1.15;
   ctx.beginPath();
   ctx.ellipse(0, 0, 22, 30, 0, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = colors.ivory;
+  if (ash < 0.72) {
+    ctx.save();
+    ctx.globalAlpha = (1 - ash) * 0.85;
+    ctx.fillStyle = hexAlpha(colors.ember, 0.9);
+    ctx.font = "500 8px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(bits, 0, -16);
+    ctx.restore();
+  }
+  ctx.fillStyle = ash > 0.45 ? colors.gold : colors.ivory;
   ctx.font = "600 18px 'Cormorant Garamond', serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(letter, 0, 2);
+  ctx.save();
+  ctx.rotate(-(ang + Math.PI / 2));
+  ctx.fillStyle = hexAlpha(colors.gold, 0.75 + ash * 0.25);
+  ctx.font = "600 9px 'IBM Plex Mono', monospace";
+  ctx.fillText(`${letter} = ${k} = ${n}`, 0, 28);
+  ctx.restore();
   ctx.restore();
 }
 
