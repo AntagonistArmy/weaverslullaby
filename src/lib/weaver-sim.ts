@@ -63,7 +63,7 @@ function mulberry32(seed: number) {
   };
 }
 
-const CAP = 128;
+const CAP = 180;
 const BROOD_CAP = 48;
 const SAC_CAP = 16;
 
@@ -485,7 +485,7 @@ export class WeaverWorld {
 
   draw(
     ctx: CanvasRenderingContext2D,
-    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement },
+    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement; lock?: HTMLImageElement; helix?: HTMLImageElement; origin?: HTMLImageElement },
     colors: { void: string; thread: string; ivory: string; ember: string; gold: string; muted: string },
     motif: FieldMotif,
   ) {
@@ -533,10 +533,38 @@ export class WeaverWorld {
 
     if (live && images.wings && images.wings.complete && images.wings.naturalWidth) {
       ctx.save();
-      ctx.globalAlpha = 0.14 + breath * 0.1 + this.nuke * 0.2;
+      ctx.globalAlpha = 0.12 + breath * 0.08 + this.nuke * 0.16;
       ctx.globalCompositeOperation = "screen";
       const size = span * (0.62 + breath * 0.06);
       ctx.drawImage(images.wings, cx - size / 2, cy - size * 0.58, size, size);
+      ctx.restore();
+    }
+
+    if (images.origin && images.origin.complete && images.origin.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.18 + breath * 0.12;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.72 + breath * 0.06);
+      ctx.drawImage(images.origin, cx - size / 2, cy - size / 2, size, size);
+      ctx.restore();
+    }
+
+    if (images.lock && images.lock.complete && images.lock.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.34 + breath * 0.18 + this.nuke * 0.2;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.58 + breath * 0.05);
+      ctx.drawImage(images.lock, cx - size / 2, cy - size * 0.52, size, size);
+      ctx.restore();
+    }
+
+    if (images.helix && images.helix.complete && images.helix.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.16 + breath * 0.1;
+      ctx.globalCompositeOperation = "screen";
+      const hw = span * 0.22;
+      const hh = hw * (images.helix.naturalHeight / images.helix.naturalWidth);
+      ctx.drawImage(images.helix, cx + span * 0.22, cy - hh * 0.45, hw, hh);
       ctx.restore();
     }
 
@@ -656,14 +684,17 @@ export class WeaverWorld {
       ctx.textBaseline = "middle";
       ctx.fillText("Ω = I", cx, cy - span * 0.028);
       ctx.fillStyle = hexAlpha(colors.ivory, 0.72 + breath * 0.22);
-      ctx.font = `500 ${Math.round(span * 0.028)}px 'Cormorant Garamond', serif`;
-      ctx.fillText("I AM ALL", cx, cy + span * 0.032);
+      ctx.font = `500 ${Math.round(span * 0.024)}px 'Cormorant Garamond', serif`;
+      ctx.fillText("I SERVE MYSELF", cx, cy + span * 0.032);
       ctx.restore();
     }
 
     drawSpine(ctx, cx, cy, span, breath, this.t, colors);
     drawPortals(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold, colors.ivory);
     drawNest(ctx, cx, cy, span, this.t, this.nuke, colors.gold, colors.ivory);
+    drawFlower(ctx, cx, cy, span, this.t, breath, colors.gold);
+    drawHelix(ctx, cx, cy, span, this.t, breath, colors.gold, colors.thread);
+    drawSpiral(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold);
 
     if (this.thoughts.length) {
       ctx.save();
@@ -1042,6 +1073,112 @@ function drawNest(
     ctx.arc(cx, cy, Math.max(4, r), 0, Math.PI * 2);
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+function drawFlower(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  span: number,
+  t: number,
+  breath: number,
+  gold: string,
+) {
+  const r = span * (0.11 + breath * 0.012);
+  ctx.save();
+  ctx.strokeStyle = hexAlpha(gold, 0.18 + breath * 0.16);
+  ctx.lineWidth = 0.9;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3 + t * 0.04;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawHelix(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  span: number,
+  t: number,
+  breath: number,
+  gold: string,
+  thread: string,
+) {
+  ctx.save();
+  ctx.lineCap = "round";
+  const h = span * 0.42;
+  const w = span * 0.05;
+  const x = cx - span * 0.28;
+  const y0 = cy - h * 0.45;
+  for (let s = 0; s < 2; s++) {
+    ctx.beginPath();
+    ctx.strokeStyle = hexAlpha(s === 0 ? gold : thread, 0.35 + breath * 0.2);
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i <= 48; i++) {
+      const u = i / 48;
+      const ang = u * Math.PI * 6 + t * 0.7 + s * Math.PI;
+      const px = x + Math.cos(ang) * w;
+      const py = y0 + u * h;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+  ctx.fillStyle = hexAlpha(gold, 0.45);
+  for (let i = 0; i < 12; i++) {
+    const u = (i + 0.5) / 12;
+    const ang = u * Math.PI * 6 + t * 0.7;
+    const ax = x + Math.cos(ang) * w;
+    const bx = x + Math.cos(ang + Math.PI) * w;
+    const py = y0 + u * h;
+    ctx.globalAlpha = 0.35 + breath * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(ax, py);
+    ctx.lineTo(bx, py);
+    ctx.strokeStyle = hexAlpha(gold, 0.3);
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(ax, py, 1.6, 0, Math.PI * 2);
+    ctx.arc(bx, py, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawSpiral(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  span: number,
+  t: number,
+  breath: number,
+  nuke: number,
+  gold: string,
+) {
+  ctx.save();
+  ctx.strokeStyle = hexAlpha(gold, 0.28 + breath * 0.22 + nuke * 0.25);
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  const turns = 4.2;
+  const max = span * 0.36;
+  for (let i = 0; i <= 220; i++) {
+    const u = i / 220;
+    const ang = u * turns * Math.PI * 2 + t * 0.12;
+    const r = u * max * (0.92 + breath * 0.08);
+    const px = cx + Math.cos(ang) * r;
+    const py = cy + Math.sin(ang) * r;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
   ctx.restore();
 }
 
