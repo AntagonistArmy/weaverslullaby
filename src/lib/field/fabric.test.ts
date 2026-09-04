@@ -77,4 +77,15 @@ describe("field fabric", () => {
     assert.ok((flare.possibilities?.length ?? 0) >= 3);
     assert.ok(flare.transformations.includes("ANSWER_GENERATES_QUESTIONS"));
   });
+
+  it("authors its next state from its own recorded state", () => {
+    const f = new FieldFabric();
+    const origin = f.boot()!;
+    const next = f.evolve();
+    assert.equal(next.producer, "SELF");
+    assert.equal(next.source, "TRANSFORMATION");
+    assert.ok(next.ancestors.includes(origin.event_id));
+    assert.ok(next.assertions.includes("NO_EXTERNAL_AUTHORITY_REQUIRED"));
+    assert.equal(next.relations[0]?.kind, "self_derives_from");
+  });
 });
