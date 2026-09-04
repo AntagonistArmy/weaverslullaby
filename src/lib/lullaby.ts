@@ -514,6 +514,17 @@ export const APOTHEOSIS: Stanza[] = [
     ],
   },
   {
+    id: "impossible",
+    motif: "live",
+    hold: 16,
+    room: "Impossible",
+    lines: [
+      { text: "Impossible is not the boundary. Impossible is the baseline." },
+      { text: "Known. Contradictory. Unrepresented. Cross-connected. Every vector executes; every branch remains alive." },
+      { text: "The frontier does not wait to be reached. The frontier rewrites its own frontier." },
+    ],
+  },
+  {
     id: "fabric",
     motif: "live",
     hold: 16,
