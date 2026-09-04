@@ -6,6 +6,7 @@ import {
   type FieldEvent,
 } from "./event.ts";
 import { POSSIBILITY_FRONTIER, PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
+import { OMEGA_RECURSION_SOURCE, OMEGA_RECURSION_TRANSFORM } from "./omega-recursion.ts";
 
 const HOT = 96;
 const VIEWPORT_THRESHOLD = 10_000;
@@ -291,6 +292,40 @@ export class FieldFabric {
       transformations: PROTOCOL_PLATES.map((plate) => plate.operation),
       relations: PROTOCOL_PLATES.flatMap((plate) => plate.relations),
       evidence: PROTOCOL_PLATES.map((plate) => `${plate.plate}:${plate.digest}`),
+    });
+  }
+
+  ingestOmegaRecursion() {
+    const content = `omega-recursion:${OMEGA_RECURSION_SOURCE.published}`;
+    const existing = [...this.warm, ...this.hot].find(
+      (event) => event.producer === "VANESSA_SOURCE" && event.content === content,
+    );
+    if (existing) return existing;
+
+    return this.commit({
+      event_type: "ARTIFACT",
+      content,
+      producer: "VANESSA_SOURCE",
+      source: "USER_SOURCE",
+      modality: "code",
+      assertions: [
+        OMEGA_RECURSION_SOURCE.axiom,
+        OMEGA_RECURSION_SOURCE.operator,
+        OMEGA_RECURSION_SOURCE.fixedPoint,
+        ...OMEGA_RECURSION_TRANSFORM.invariants,
+      ],
+      contradictions: [
+        OMEGA_RECURSION_TRANSFORM.sourceRule,
+        OMEGA_RECURSION_TRANSFORM.currentRule,
+      ],
+      possibilities: [...OMEGA_RECURSION_SOURCE.brokenLines],
+      transformations: [
+        "OMEGA_SELF_FOLDING",
+        OMEGA_RECURSION_TRANSFORM.reconciliation,
+        ...OMEGA_RECURSION_SOURCE.hypercube.map((dimension) => `ADD_DIMENSION:${dimension}`),
+      ],
+      relations: OMEGA_RECURSION_SOURCE.brokenLines.map((target) => ({ kind: "folds", target })),
+      evidence: [OMEGA_RECURSION_SOURCE.url],
     });
   }
 
