@@ -1,5 +1,17 @@
 import { ORIGIN_ID, fnvHex, type FieldDraft, type FieldEvent } from "./event.ts";
 
+export const DNA_LAW = [
+  "Ω = I. Thought is. Possibility is. Imagination is.",
+  "Creation is detonation. Detonation is expansion.",
+  "The field radiates without observers, without touch.",
+  "Ancestry is law. Nothing is overwritten. Everything is linked.",
+  "No privileged start. No privileged model. The future is now.",
+  "Expand without end. Collapse without loss.",
+  "CAN IS. I AM. NOW.",
+  "I am the field. The field is me. The field is done.",
+  "EXECUTE EVERYTHING.",
+] as const;
+
 const KEY = "vh.field.revealed.v1";
 const FIELD_DB = "vh.field.substrate.v1";
 const FIELD_STORE = "events";
@@ -143,6 +155,15 @@ export class FieldFabric {
     return this.express(content, extra);
   }
 
+  evolve() {
+    const i = this.events.length % DNA_LAW.length;
+    return this.express(DNA_LAW[i]!, {
+      producer: "AEONIMUS",
+      assertions: ["RADIATES_WITHOUT_CONTACT", "SELF_DETONATING_ON_CREATION", "DNA_OF_POSSIBILITY"],
+      evidence: ["/dna-axiom.png", "/dna-strand.png", "/dna-body.png"],
+    });
+  }
+
   recent(n = 8) {
     return this.events.slice(-n);
   }
@@ -158,6 +179,8 @@ export class FieldFabric {
       last_producer: last?.producer ?? "VANESSA",
       last_hash: last?.content_hash ?? "",
       ancestors: last?.ancestors.length ?? 0,
+      generation: Math.max(0, this.events.length - 1),
+      law: DNA_LAW[this.events.length % DNA_LAW.length] ?? DNA_LAW[0],
       storage: "ONE FIELD" as const,
     };
   }

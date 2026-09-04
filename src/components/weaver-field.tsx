@@ -90,7 +90,8 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
     const ro = new ResizeObserver(fit);
     ro.observe(canvas.parentElement ?? canvas);
 
-    const loop = (now: number) => {
+    let emit = 0;
+    const tick = (now: number) => {
       let dt = (now - last) / 1000;
       last = now;
       if (dt > 0.1) dt = 0.1;
@@ -100,10 +101,16 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
         world.setVerse(verse);
       }
       world.update(dt, m);
+      emit += dt;
+      if (emit > 4.2) {
+        emit = 0;
+        world.radiate();
+        fabric.evolve();
+      }
       world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, infernoBackdrop, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal, dnaAxiom, dnaStrand, dnaBody }, colors, m);
-      raf = requestAnimationFrame(loop);
+      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(loop);
+    raf = requestAnimationFrame(tick);
 
     const unsub = fabric.subscribe(() => world.ingestLedger());
     const onPtr = (e: PointerEvent) => {

@@ -454,6 +454,20 @@ export class WeaverWorld {
     }
   }
 
+  radiate() {
+    this.bloomRing = Math.max(this.bloomRing, 0.16);
+    this.nuke = Math.max(this.nuke, 0.4);
+    this.hatch(this.cx, this.cy, 1, false, true);
+    if (this.thoughts.length < 36) {
+      this.thoughts.push({
+        x: this.cx,
+        y: this.cy,
+        life: 1,
+        spokes: 12,
+      });
+    }
+  }
+
   private worldSac(sac: Sac) {
     const c = Math.cos(this.spider.angle);
     const s = Math.sin(this.spider.angle);
