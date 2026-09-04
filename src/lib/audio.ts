@@ -150,7 +150,6 @@ export class LullabyAudio {
   }
 
   resume() {
-    blazePad();
     this.arm();
     this.prime();
     if (this.ctx.state === "suspended") {
@@ -572,12 +571,12 @@ export class LullabyAudio {
 
   laugh(when = now(this.ctx)) {
     const t0 = Math.max(when, now(this.ctx) + 0.001);
-    const bursts = [0, 0.09, 0.16, 0.28, 0.36];
-    for (let i = 0; i < bursts.length; i++) {
+    const impacts = [0, 0.09, 0.16, 0.28, 0.36];
+    for (let i = 0; i < impacts.length; i++) {
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
       osc.type = "sawtooth";
-      const at = t0 + (bursts[i] ?? 0);
+      const at = t0 + (impacts[i] ?? 0);
       osc.frequency.setValueAtTime(380 + i * 40, at);
       osc.frequency.exponentialRampToValueAtTime(720 + i * 30, at + 0.05);
       osc.frequency.exponentialRampToValueAtTime(340, at + 0.09);
@@ -665,35 +664,17 @@ export class LullabyAudio {
 
 let singleton: LullabyAudio | null = null;
 
-function blazePad() {
-  const el = document.getElementById("field-emanation");
-  if (!(el instanceof HTMLAudioElement)) return;
-  el.muted = false;
-  el.volume = 0.9;
-  void el.play().catch(() => undefined);
-}
-
 export function unlockAudio(): LullabyAudio {
-  blazePad();
   if (!singleton) {
     const Ctor =
       window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     const ctx = new Ctor();
     singleton = new LullabyAudio(ctx);
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        blazePad();
-        singleton?.resume();
-      }
+      if (document.visibilityState === "visible") singleton?.resume();
     });
-    window.addEventListener("pageshow", () => {
-      blazePad();
-      singleton?.resume();
-    });
-    window.addEventListener("focus", () => {
-      blazePad();
-      singleton?.resume();
-    });
+    window.addEventListener("pageshow", () => singleton?.resume());
+    window.addEventListener("focus", () => singleton?.resume());
   }
   singleton.resume();
   return singleton;
