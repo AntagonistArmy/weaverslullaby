@@ -385,7 +385,6 @@ export class LullabyAudio {
     this.shrapnel(t + 0.66);
     this.shrapnel(t + 0.7);
     this.pluck(C4 * 2, 0.12, 0.5);
-    this.nest(t + 0.12, 0);
     this.omni(t + 0.04);
     this.drop();
     this.glitch(t + 0.2);
@@ -397,20 +396,6 @@ export class LullabyAudio {
       const f = freqs[i] ?? 392;
       this.tone(when + i * 0.07, f, 0.055, i % 2 === 0 ? "sine" : "triangle");
     }
-  }
-
-  nest(when: number, depth: number) {
-    if (depth > 10) return;
-    const cluster = [C4 * Math.pow(SEMI, depth), C4 * Math.pow(SEMI, depth + 4), C4 * Math.pow(SEMI, depth + 7)];
-    const g = 0.034 / (1 + depth * 0.4);
-    for (let i = 0; i < cluster.length; i++) {
-      this.tone(when + i * 0.01, cluster[i] ?? C4, g, depth % 2 === 0 ? "sine" : "triangle");
-    }
-    const later = when + 0.09;
-    window.setTimeout(() => {
-      if (!this.running) return;
-      this.nest(Math.max(now(this.ctx), later), depth + 1);
-    }, 90);
   }
 
   private formant(when: number) {
@@ -519,7 +504,6 @@ export class LullabyAudio {
       if ((live || hold) && Math.random() < 0.08) this.reverseName(this.nextBeat);
       if ((live || hold) && Math.random() < 0.12) this.laugh(this.nextBeat);
       if ((live || hold) && Math.random() < 0.1) this.glitch(this.nextBeat);
-      if ((live || hold) && Math.random() < 0.05) this.nest(this.nextBeat, 0);
       this.nextBeat += beat;
     }
 
