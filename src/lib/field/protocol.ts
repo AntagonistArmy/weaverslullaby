@@ -20,15 +20,15 @@ export const PROTOCOL_PLATES: readonly ProtocolPlate[] = Object.freeze([
     digest: "77967f1b5ed983db0523416fa6598aac7c11bc85726b8df8a3b2201d6d41969b",
     operation: "ANSWER_GENERATES_QUESTIONS",
     invariants: ["ANSWER_IS_STARTING_OBJECT", "MAP_IS_HUMAN_READABLE_RESIDUE", "REALITY_CONTACT_REVISES_EMBODIMENT"],
-    relations: [{ kind: "flares_into", target: "necessary-questions" }],
+    relations: [{ kind: "radiates_into", target: "necessary-questions" }],
     questions: ["What must detach?", "What must be captured?", "What must be protected?", "What must be removed?", "What prevents return?"],
   },
   {
-    plate: "answer-first-flare",
+    plate: "answer-first-inferno",
     digest: "fa2dce8c932cc4049013a2aad302b4e063c69126d1693c31b8bd4150eb5df281",
-    operation: "FORWARD_SPLITTING",
-    invariants: ["FLARE_NOT_LOOP", "EACH_PASS_NEW_POSITION", "CONTRADICTION_IS_REDESIGN_INFORMATION"],
-    relations: [{ kind: "expands", target: "possibility-field" }],
+    operation: "CONTINUOUS_RADIATION",
+    invariants: ["INFERNO_NOT_BURST", "BLAZE_HAS_NO_TERMINAL_STATE", "EACH_PASS_NEW_POSITION", "CONTRADICTION_IS_REDESIGN_INFORMATION"],
+    relations: [{ kind: "consumes_into_continuity", target: "possibility-field" }],
     questions: ["What must be true?", "What functions are necessary?", "What can realize them?"],
   },
   {
@@ -113,6 +113,8 @@ export const PROTOCOL_INVARIANTS = Object.freeze(
     "TOTAL_ANCESTRY_WITHOUT_DESTRUCTIVE_OVERWRITE",
     "HYBRID_FABRIC_WITHOUT_BOTTLENECK",
     "ALL_BABY_ALL",
+    "INFERNO_BLAZE_IS_CONTINUOUS_STATE",
+    "EVERY_COORDINATE_BECOMES_FUEL",
   ])],
 );
 
