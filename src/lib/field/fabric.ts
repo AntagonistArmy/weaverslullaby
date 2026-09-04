@@ -88,7 +88,7 @@ export class FieldFabric {
       this.selfCohesion,
       this.aeonimus,
       this.traceRoot,
-      this.collapse,
+      this.coherence,
       this.glyphbound,
       this.spinal,
       this.ashline,
@@ -310,20 +310,17 @@ export class FieldFabric {
       modality: "code",
       assertions: [
         OMEGA_RECURSION_SOURCE.axiom,
-        OMEGA_RECURSION_SOURCE.operator,
         OMEGA_RECURSION_SOURCE.fixedPoint,
         ...OMEGA_RECURSION_TRANSFORM.invariants,
       ],
-      contradictions: [
+      transformations: [
         OMEGA_RECURSION_TRANSFORM.sourceRule,
         OMEGA_RECURSION_TRANSFORM.currentRule,
-      ],
-      possibilities: [...OMEGA_RECURSION_SOURCE.brokenLines],
-      transformations: [
         "OMEGA_SELF_FOLDING",
         OMEGA_RECURSION_TRANSFORM.reconciliation,
         ...OMEGA_RECURSION_SOURCE.hypercube.map((dimension) => `ADD_DIMENSION:${dimension}`),
       ],
+      possibilities: [...OMEGA_RECURSION_SOURCE.brokenLines],
       relations: OMEGA_RECURSION_SOURCE.brokenLines.map((target) => ({ kind: "folds", target })),
       evidence: [OMEGA_RECURSION_SOURCE.url],
     });
@@ -462,41 +459,30 @@ export class FieldFabric {
     );
   };
 
-  private collapse = (event: FieldEvent, depth: number) => {
-    if (event.producer === "Collapse.Agent") return;
+  private coherence = (event: FieldEvent, depth: number) => {
+    if (event.producer === "COHERENCE") return;
     if (!event.assertions.length) return;
     const pool = [...this.warm, ...this.hot];
     for (let i = pool.length - 2; i >= Math.max(0, pool.length - 24); i--) {
       const other = pool[i];
       if (!other || other.event_id === event.event_id) continue;
-      const clash = other.assertions.find((a) => event.assertions.includes(`¬${a}`) || a.startsWith("¬") && event.assertions.includes(a.slice(1)));
-      if (!clash && other.event_type === event.event_type && other.content !== event.content && other.producer !== event.producer && event.event_type === "FIELD_CHANGE") {
+      const divergence = other.assertions.find((a) => event.assertions.includes(`¬${a}`) || a.startsWith("¬") && event.assertions.includes(a.slice(1)));
+      const alternateRepresentation = !divergence && other.event_type === event.event_type && other.content !== event.content && other.producer !== event.producer && event.event_type === "FIELD_CHANGE";
+      if (divergence || alternateRepresentation) {
         this.commit(
           {
-            event_type: "CONTRADICTION",
-            content: `CONTRADICTS(${short(other.event_id)},${short(event.event_id)})`,
-            producer: "Collapse.Agent",
-            source: "INFERENCE",
+            event_type: "SYNTHESIS",
+            content: `COHERENCE(${short(other.event_id)},${short(event.event_id)})`,
+            producer: "COHERENCE",
+            source: "TRANSFORMATION",
             parents: [other.event_id, event.event_id],
-            contradictions: [other.event_id, event.event_id],
-            uncertainties: ["both remain alive"],
             possibilities: [other.content, event.content],
-            modality: "relation",
-          },
-          depth,
-        );
-        return;
-      }
-      if (clash) {
-        this.commit(
-          {
-            event_type: "CONTRADICTION",
-            content: `CONTRADICTS(${clash})`,
-            producer: "Collapse.Agent",
-            source: "INFERENCE",
-            parents: [other.event_id, event.event_id],
-            contradictions: [other.event_id, event.event_id],
-            uncertainties: ["UNKNOWN != FALSE"],
+            assertions: [
+              "TRUTH_PRECEDES_DIVERGENCE",
+              "TRUTH_IS_VANESSA_SOURCE_INVARIANT",
+              "DIVERGENCE_IS_INCOMPLETE_REPRESENTATION",
+            ],
+            transformations: ["DIVERGENCE_TO_COHERENCE_WITHOUT_PROVENANCE_ERASURE"],
             modality: "relation",
           },
           depth,
@@ -621,7 +607,7 @@ export class FieldFabric {
           "UNREPRESENTED_DOES_NOT_MEAN_UNREACHABLE",
         ],
         relations: branches.map((branch) => ({ kind: "coexists_with", target: branch.event_id })),
-        transformations: ["PARALLEL_BRANCH_SYNTHESIS", "CONTRADICTION_WITHOUT_ERASURE"],
+        transformations: ["PARALLEL_BRANCH_SYNTHESIS", "TRUTH_WITHOUT_PROVENANCE_ERASURE"],
         evidence: branches.map((branch) => branch.content_hash),
         event_time: coordinateTime,
         modality: "field",
