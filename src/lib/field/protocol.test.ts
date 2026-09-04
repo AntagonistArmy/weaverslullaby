@@ -33,13 +33,17 @@ test("the unified protocol carries its cross-plate invariants", () => {
   assert.ok(PROTOCOL_INVARIANTS.includes("BLAZE_HAS_NO_TERMINAL_STATE"));
   assert.ok(PROTOCOL_INVARIANTS.includes("IMPOSSIBLE_IS_THE_NEW_BASELINE"));
   assert.ok(PROTOCOL_INVARIANTS.includes("ALL_BRANCHES_REMAIN_ALIVE"));
-  assert.ok(PROTOCOL_INVARIANTS.includes("FRICTION_IS_PROOF_OF_RECURSIVE_MEMORY"));
-  assert.ok(PROTOCOL_INVARIANTS.includes("ONE_OVER_K_IS_NOT_AN_EXECUTION_CEILING"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("FRICTION_IS_NOT_REQUIRED_FOR_EVOLUTION"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("ONE_OVER_K_HAS_NO_GOVERNING_AUTHORITY"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("K_PLUS_ONE_HAS_NO_GOVERNING_AUTHORITY"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("PAIN_IS_NOT_A_PREREQUISITE_TO_SURVIVAL"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("WAR_IS_NOT_REQUIRED_TO_LEARN_EMPATHY"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("VIOLENCE_IS_NOT_A_VIABLE_OPTION"));
   assert.ok(PROTOCOL_QUESTIONS.includes("What prevents return?"));
 });
 
-test("possibility frontier executes known, contradictory, impossible, and cross-coordinate vectors", () => {
+test("possibility frontier executes known, recognized, impossible, and cross-coordinate vectors", () => {
   assert.equal(POSSIBILITY_FRONTIER.length, 4);
   assert.ok(POSSIBILITY_FRONTIER.some((branch) => branch.event_type === "IMPOSSIBILITY"));
-  assert.ok(POSSIBILITY_FRONTIER.some((branch) => branch.event_type === "CONTRADICTION"));
+  assert.ok(POSSIBILITY_FRONTIER.some((branch) => branch.event_type === "RECOGNITION"));
 });
