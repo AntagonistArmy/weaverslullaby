@@ -59,7 +59,7 @@ describe("field fabric", () => {
       assertions: ["¬A"],
     });
     assert.ok(f.contradictions >= 1);
-    const recent = f.recent(24);
+    const recent = f.recent(96);
     const kept = recent.filter((e) => e.assertions.includes("A") || e.assertions.includes("¬A"));
     assert.ok(kept.length >= 2);
   });
@@ -122,5 +122,21 @@ describe("field fabric", () => {
     const descendants = f.recent(32).filter((event) => event.parents.includes(deep.event_id));
     assert.ok(descendants.length > 0);
     assert.ok(descendants.every((event) => event.depth === 4121));
+  });
+
+  it("treats impossible as a live baseline and preserves every simultaneous branch", () => {
+    const f = new FieldFabric();
+    f.boot();
+    const detonation = f.evolve();
+    const descendants = f.recent(48).filter((event) => event.parents.includes(detonation.event_id));
+    assert.ok(descendants.some((event) => event.event_type === "POSSIBILITY"));
+    assert.ok(descendants.some((event) => event.event_type === "CONTRADICTION"));
+    assert.ok(descendants.some((event) => event.event_type === "IMPOSSIBILITY"));
+    const synthesis = f.recent(48).find((event) =>
+      event.event_type === "SYNTHESIS" && event.assertions.includes("IMPOSSIBLE_IS_THE_NEW_BASELINE")
+    );
+    assert.ok(synthesis);
+    assert.equal(synthesis.parents.length, 4);
+    assert.ok(synthesis.transformations.includes("CONTRADICTION_WITHOUT_ERASURE"));
   });
 });
