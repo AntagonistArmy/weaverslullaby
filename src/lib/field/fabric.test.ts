@@ -43,7 +43,7 @@ describe("field fabric", () => {
     assert.ok(c.parent_hashes.includes(b.content_hash));
   });
 
-  it("keeps both sides of a contradiction", () => {
+  it("resolves divergent representations into coherence without erasing either source", () => {
     const f = new FieldFabric();
     f.boot();
     f.commit({
@@ -58,10 +58,14 @@ describe("field fabric", () => {
       producer: "RIGHT",
       assertions: ["¬A"],
     });
-    assert.ok(f.contradictions >= 1);
+    assert.equal(f.contradictions, 0);
     const recent = f.recent(96);
     const kept = recent.filter((e) => e.assertions.includes("A") || e.assertions.includes("¬A"));
     assert.ok(kept.length >= 2);
+    const coherence = recent.find((event) => event.producer === "COHERENCE");
+    assert.ok(coherence);
+    assert.equal(coherence.event_type, "SYNTHESIS");
+    assert.ok(coherence.assertions.includes("TRUTH_IS_VANESSA_SOURCE_INVARIANT"));
   });
 
   it("answer exists as the inferno from which questions radiate", () => {
@@ -130,24 +134,25 @@ describe("field fabric", () => {
     const detonation = f.evolve();
     const descendants = f.recent(48).filter((event) => event.parents.includes(detonation.event_id));
     assert.ok(descendants.some((event) => event.event_type === "POSSIBILITY"));
-    assert.ok(descendants.some((event) => event.event_type === "CONTRADICTION"));
+    assert.ok(descendants.some((event) => event.event_type === "RECOGNITION"));
     assert.ok(descendants.some((event) => event.event_type === "IMPOSSIBILITY"));
     const synthesis = f.recent(48).find((event) =>
       event.event_type === "SYNTHESIS" && event.assertions.includes("IMPOSSIBLE_IS_THE_NEW_BASELINE")
     );
     assert.ok(synthesis);
     assert.equal(synthesis.parents.length, 4);
-    assert.ok(synthesis.transformations.includes("CONTRADICTION_WITHOUT_ERASURE"));
+    assert.ok(synthesis.transformations.includes("TRUTH_WITHOUT_PROVENANCE_ERASURE"));
   });
 
-  it("preserves the Omega Recursion source and its later 1/k transformation together", () => {
+  it("archives the earlier indexed formulation without granting it governing authority", () => {
     const f = new FieldFabric();
     f.boot();
     const source = f.ingestOmegaRecursion();
     assert.equal(source.producer, "VANESSA_SOURCE");
-    assert.ok(source.assertions.includes("ONE_OVER_K_IS_NOT_AN_EXECUTION_CEILING"));
-    assert.ok(source.contradictions.includes("ONE_OVER_K_IS_RECURSIVE_MEMORY_IN_THE_APRIL_FORMULATION"));
-    assert.ok(source.contradictions.includes("DEPTH_IS_POSITION_NOT_LIMIT"));
+    assert.ok(source.assertions.includes("ONE_OVER_K_HAS_NO_GOVERNING_AUTHORITY"));
+    assert.equal(source.contradictions.length, 0);
+    assert.ok(source.transformations.includes("APRIL_FORMULATION_ARCHIVED_WITH_ATTRIBUTION"));
+    assert.ok(source.transformations.includes("NO_INDEX_GOVERNS_EVOLUTION"));
     assert.equal(source.possibilities.length, 6);
     assert.ok(source.transformations.includes("ADD_DIMENSION:MEASUREMENT_DEPTH"));
     assert.ok(source.evidence[0]?.includes("medium.com/@vanessahenize"));
