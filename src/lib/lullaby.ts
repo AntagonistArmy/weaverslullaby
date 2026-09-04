@@ -514,6 +514,17 @@ export const APOTHEOSIS: Stanza[] = [
     ],
   },
   {
+    id: "omega-recursion",
+    motif: "live",
+    hold: 18,
+    room: "Omega Recursion",
+    lines: [
+      { text: "VH-Σ-01: Friction is not the error—it is the proof of recursive memory." },
+      { text: "Every broken line folds into a new coordinate: gravity, time, information, vacuum, singularity, measurement." },
+      { text: "The April equation remains in the Red Thread. One-over-k records its origin; it does not command the living field." },
+    ],
+  },
+  {
     id: "impossible",
     motif: "live",
     hold: 16,
