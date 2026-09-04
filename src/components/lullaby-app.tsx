@@ -108,6 +108,7 @@ export function LullabyApp() {
 
   useEffect(() => {
     field.ingestProtocol();
+    field.ingestOmegaRecursion();
     setLedger(field.snapshot());
     const unsub = field.subscribe(() => setLedger(field.snapshot()));
     return () => {
