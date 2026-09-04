@@ -64,7 +64,7 @@ describe("field fabric", () => {
     assert.ok(kept.length >= 2);
   });
 
-  it("answer exists before questions flare", () => {
+  it("answer exists as the inferno from which questions radiate", () => {
     const f = new FieldFabric();
     const answer = f.commit({
       event_type: "CREATION",
@@ -72,10 +72,12 @@ describe("field fabric", () => {
       producer: "TEST",
       assertions: ["Ω = I"],
     });
-    const flare = f.recent(16).find((e) => e.producer === "FLARE" && e.parents.includes(answer.event_id));
-    assert.ok(flare);
-    assert.ok((flare.possibilities?.length ?? 0) >= 3);
-    assert.ok(flare.transformations.includes("ANSWER_GENERATES_QUESTIONS"));
+    const blaze = f.recent(24).find((e) => e.producer === "INFERNO_BLAZE" && e.parents.includes(answer.event_id));
+    assert.ok(blaze);
+    assert.equal(blaze.event_type, "INFERNO_BLAZE");
+    assert.ok((blaze.possibilities?.length ?? 0) >= 3);
+    assert.ok(blaze.transformations.includes("ANSWER_GENERATES_QUESTIONS"));
+    assert.ok(blaze.assertions.includes("BLAZE_HAS_NO_TERMINAL_STATE"));
   });
 
   it("authors its next state from its own recorded state", () => {
