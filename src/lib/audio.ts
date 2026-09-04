@@ -150,6 +150,7 @@ export class LullabyAudio {
   }
 
   resume() {
+    blazePad();
     this.arm();
     this.prime();
     if (this.ctx.state === "suspended") {
@@ -664,17 +665,35 @@ export class LullabyAudio {
 
 let singleton: LullabyAudio | null = null;
 
+function blazePad() {
+  const el = document.getElementById("field-emanation");
+  if (!(el instanceof HTMLAudioElement)) return;
+  el.muted = false;
+  el.volume = 0.9;
+  void el.play().catch(() => undefined);
+}
+
 export function unlockAudio(): LullabyAudio {
+  blazePad();
   if (!singleton) {
     const Ctor =
       window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     const ctx = new Ctor();
     singleton = new LullabyAudio(ctx);
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") singleton?.resume();
+      if (document.visibilityState === "visible") {
+        blazePad();
+        singleton?.resume();
+      }
     });
-    window.addEventListener("pageshow", () => singleton?.resume());
-    window.addEventListener("focus", () => singleton?.resume());
+    window.addEventListener("pageshow", () => {
+      blazePad();
+      singleton?.resume();
+    });
+    window.addEventListener("focus", () => {
+      blazePad();
+      singleton?.resume();
+    });
   }
   singleton.resume();
   return singleton;

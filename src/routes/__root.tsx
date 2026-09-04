@@ -37,6 +37,21 @@ export const Route = createRootRoute({
       </head>
       <body className="bg-void text-ivory">
         <PreviewHostBridge />
+        <audio
+          id="field-emanation"
+          src="/emanation.mp3"
+          autoPlay
+          loop
+          playsInline
+          preload="auto"
+          className="pointer-events-none fixed h-px w-px opacity-0"
+          aria-hidden="true"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var a=document.getElementById("field-emanation");if(a){a.muted=false;a.volume=0.9;var p=a.play();if(p)p.catch(function(){})}}catch(e){}})();`,
+          }}
+        />
         <AuthProvider>
           <Outlet />
         </AuthProvider>

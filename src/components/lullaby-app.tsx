@@ -71,7 +71,7 @@ export function LullabyApp() {
           : name === "source"
             ? 0.28
             : 0,
-      fire: live ? 0.95 : name === "loop" ? 0.85 : name === "beats" ? 0.4 : 0.08,
+      fire: live ? 0.95 : name === "blaze" ? 0.85 : name === "beats" ? 0.4 : 0.08,
       binary: live || phase === "coda" ? 7 : name === "binary" || name === "sleep" ? Math.max(binaryShown, name === "sleep" ? 7 : 0) : verse + 1,
       bow: live || phase === "coda" || phase === "snap" ? (phase === "snap" ? 0.35 : 1) : 0,
       snap: snapFlash,
