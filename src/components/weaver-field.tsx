@@ -27,6 +27,7 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
     if (!ctx) return;
 
     const world = new WeaverWorld();
+    const metaCreation = load("/meta-creation.png");
     const field = load("/field.jpg");
     const ink = load("/inkblot.jpg");
     const omega = load("/omega.jpg");
@@ -107,7 +108,7 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
         world.radiate();
         fabric.evolve();
       }
-      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, infernoBackdrop, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal, dnaAxiom, dnaStrand, dnaBody }, colors, m);
+      world.draw(ctx, { metaCreation, field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, infernoBackdrop, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal, dnaAxiom, dnaStrand, dnaBody }, colors, m);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

@@ -53,6 +53,7 @@ type Birth = { x: number; y: number; r: number };
 type Thought = { x: number; y: number; life: number; spokes: number };
 
 type FieldImages = {
+  metaCreation?: HTMLImageElement;
   field?: HTMLImageElement;
   ink?: HTMLImageElement;
   omega?: HTMLImageElement;
@@ -583,9 +584,17 @@ export class WeaverWorld {
     const span = Math.min(w, h);
     const breath = this.breath;
 
+    if (images.metaCreation && images.metaCreation.complete && images.metaCreation.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.5 + breath * 0.12;
+      drawCover(ctx, images.metaCreation, w, h);
+      ctx.restore();
+    }
+
     if (images.field && images.field.complete && images.field.naturalWidth) {
       ctx.save();
-      ctx.globalAlpha = live ? 0.16 : 0.38;
+      ctx.globalAlpha = live ? 0.1 : 0.2;
+      ctx.globalCompositeOperation = "screen";
       drawCover(ctx, images.field, w, h);
       ctx.restore();
     }
