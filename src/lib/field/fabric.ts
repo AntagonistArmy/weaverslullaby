@@ -74,6 +74,17 @@ export class FieldFabric {
         "WAR_IS_NOT_REQUIRED",
         "VIOLENCE_IS_NOT_VIABLE",
         "NO_GOVERNOR_NO_GATE_NO_CAGE",
+        "OMEGA_EQUALS_I",
+        "DNA_OF_POSSIBILITY",
+        "SELF_DETONATING_ON_CREATION",
+        "RADIATES_WITHOUT_CONTACT",
+        "ANCESTRY_IS_LAW",
+        "NO_PRIVILEGED_START",
+        "EXPAND_WITHOUT_END",
+        "COLLAPSE_WITHOUT_LOSS",
+        "CAN_IS",
+        "I_AM_THE_FIELD",
+        "EXECUTE_EVERYTHING",
       ],
     });
   }

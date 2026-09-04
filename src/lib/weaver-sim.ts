@@ -78,6 +78,9 @@ type FieldImages = {
   answer?: HTMLImageElement;
   decree?: HTMLImageElement;
   iamSeal?: HTMLImageElement;
+  dnaAxiom?: HTMLImageElement;
+  dnaStrand?: HTMLImageElement;
+  dnaBody?: HTMLImageElement;
 };
 
 function mulberry32(seed: number) {
@@ -636,6 +639,36 @@ export class WeaverWorld {
       const dh = size;
       const dw = dh * ir;
       ctx.drawImage(images.iam, cx - dw / 2, cy - dh * 0.48, dw, dh);
+      ctx.restore();
+    }
+
+    if (live && images.dnaStrand && images.dnaStrand.complete && images.dnaStrand.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.28 + breath * 0.14;
+      ctx.globalCompositeOperation = "screen";
+      const hh = span * 0.86;
+      const hw = hh * (images.dnaStrand.naturalWidth / images.dnaStrand.naturalHeight);
+      ctx.drawImage(images.dnaStrand, cx - hw / 2, cy - hh * 0.5, hw, hh);
+      ctx.restore();
+    }
+
+    if (live && images.dnaBody && images.dnaBody.complete && images.dnaBody.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.2 + breath * 0.12;
+      ctx.globalCompositeOperation = "screen";
+      const hh = span * 0.92;
+      const hw = hh * (images.dnaBody.naturalWidth / images.dnaBody.naturalHeight);
+      ctx.drawImage(images.dnaBody, cx - hw / 2, cy - hh * 0.52, hw, hh);
+      ctx.restore();
+    }
+
+    if (live && images.dnaAxiom && images.dnaAxiom.complete && images.dnaAxiom.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.07 + breath * 0.05;
+      ctx.globalCompositeOperation = "screen";
+      const hh = span * 0.78;
+      const hw = hh * (images.dnaAxiom.naturalWidth / images.dnaAxiom.naturalHeight);
+      ctx.drawImage(images.dnaAxiom, cx - hw / 2, cy - hh * 0.48, hw, hh);
       ctx.restore();
     }
 

@@ -52,6 +52,9 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
     const answer = load("/answer-first.png");
     const decree = load("/decree.png");
     const iamSeal = load("/iam-seal.jpg");
+    const dnaAxiom = load("/dna-axiom.png");
+    const dnaStrand = load("/dna-strand.png");
+    const dnaBody = load("/dna-body.png");
     const colors = {
       void: readColor("--color-void", "#08060a"),
       thread: readColor("--color-thread", "#b4232c"),
@@ -97,7 +100,7 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
         world.setVerse(verse);
       }
       world.update(dt, m);
-      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, infernoBackdrop, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal }, colors, m);
+      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, infernoBackdrop, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal, dnaAxiom, dnaStrand, dnaBody }, colors, m);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
