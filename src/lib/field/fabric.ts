@@ -8,12 +8,45 @@ import {
 import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
 
 const HOT = 96;
-const WARM = 256;
-const DEPTH = 2;
+export const SPILL_THRESHOLD = 10_000;
+const SPILL_BATCH = 1_000;
 const KEY = "vh.field.v1";
+const SPILL_DB = "vh.field.spill.v1";
+const SPILL_STORE = "events";
 
 type Worker = (event: FieldEvent, depth: number) => void;
 type Listener = () => void;
+type WorkItem = { event: FieldEvent; depth: number };
+
+function openSpillDb(): Promise<IDBDatabase | undefined> {
+  if (typeof indexedDB === "undefined") return Promise.resolve(undefined);
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(SPILL_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(SPILL_STORE)) {
+        db.createObjectStore(SPILL_STORE, { keyPath: "event_id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function spillEvents(events: readonly FieldEvent[]) {
+  if (!events.length) return;
+  const db = await openSpillDb();
+  if (!db) return;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(SPILL_STORE, "readwrite");
+    const store = tx.objectStore(SPILL_STORE);
+    for (const event of events) store.put(event);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+  db.close();
+}
 
 function ancestryOf(parents: string[], byId: Map<string, FieldEvent>): string[] {
   const seen = new Set<string>();
@@ -45,6 +78,8 @@ export class FieldFabric {
   private cold = 0;
   private byId = new Map<string, FieldEvent>();
   private workers: Worker[] = [];
+  private queue: WorkItem[] = [];
+  private draining = false;
   private listeners = new Set<Listener>();
   private writing = false;
   private booted = false;
@@ -112,6 +147,9 @@ export class FieldFabric {
       ancestors: last?.ancestors.length ?? 0,
       parents: last?.parents.length ?? 0,
       parent_hashes: last?.parent_hashes.length ?? 0,
+      depth: last?.depth ?? 0,
+      helix_position: last?.helix_position ?? 0,
+      storage: this.warm.length >= SPILL_THRESHOLD ? "SPILLING" : "MEMORY",
     };
   }
 
@@ -156,6 +194,8 @@ export class FieldFabric {
       producer: draft.producer,
       model: draft.model ?? "field",
       tool: draft.tool ?? "commit",
+      depth,
+      helix_position: this.seq,
     });
 
     this.byId.set(event.event_id, event);
@@ -164,17 +204,34 @@ export class FieldFabric {
       const moved = this.hot.shift();
       if (moved) this.warm.push(moved);
     }
-    while (this.warm.length > WARM) {
-      const dropped = this.warm.shift();
-      if (dropped) this.cold += 1;
+    if (this.warm.length > SPILL_THRESHOLD) {
+      const spilled = this.warm.splice(0, SPILL_BATCH);
+      this.cold += spilled.length;
+      void spillEvents(spilled).catch(() => {
+        // Storage pressure changes strategy, never the field's forward motion.
+        this.warm.unshift(...spilled);
+        this.cold -= spilled.length;
+      });
     }
 
     this.emit();
-    if (depth < DEPTH) {
-      for (const worker of this.workers) worker(event, depth + 1);
-    }
+    this.queue.push({ event, depth });
+    this.drainQueue();
     this.persist();
     return event;
+  }
+
+  private drainQueue() {
+    if (this.draining) return;
+    this.draining = true;
+    try {
+      let item: WorkItem | undefined;
+      while ((item = this.queue.shift())) {
+        for (const worker of this.workers) worker(item.event, item.depth + 1);
+      }
+    } finally {
+      this.draining = false;
+    }
   }
 
   contact(content: string, extra?: Partial<FieldDraft>) {
@@ -311,6 +368,8 @@ export class FieldFabric {
           event_time: e.event_time,
           ingest_time: e.ingest_time,
           signature: e.signature,
+          depth: e.depth,
+          helix_position: e.helix_position,
           assertions: e.assertions,
           contradictions: e.contradictions,
           parent_hashes: e.parent_hashes,
@@ -343,6 +402,8 @@ export class FieldFabric {
           possibilities: e.possibilities ?? [],
           transformations: e.transformations ?? [],
           evidence: e.evidence ?? [],
+          depth: e.depth ?? 0,
+          helix_position: e.helix_position ?? this.seq,
         }) as FieldEvent;
         this.byId.set(frozen.event_id, frozen);
         this.hot.push(frozen);
