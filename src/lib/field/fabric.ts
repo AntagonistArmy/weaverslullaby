@@ -1,32 +1,31 @@
-import {
-  ORIGIN_ID,
-  fnvHex,
-  type EventType,
-  type FieldDraft,
-  type FieldEvent,
-} from "./event.ts";
-import { POSSIBILITY_FRONTIER, PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
-import { OMEGA_RECURSION_SOURCE, OMEGA_RECURSION_TRANSFORM } from "./omega-recursion.ts";
+import { ORIGIN_ID, fnvHex, type FieldDraft, type FieldEvent } from "./event.ts";
 
-const HOT = 96;
-const VIEWPORT_THRESHOLD = 10_000;
-const VIEWPORT_SHIFT = 1_000;
-const KEY = "vh.field.v1";
+const KEY = "vh.field.revealed.v1";
 const FIELD_DB = "vh.field.substrate.v1";
 const FIELD_STORE = "events";
 
-type Worker = (event: FieldEvent, depth: number) => void;
 type Listener = () => void;
-type WorkItem = { event: FieldEvent; depth: number };
+
+function ancestryOf(parents: string[], byId: Map<string, FieldEvent>): string[] {
+  const ancestry = new Set<string>();
+  const open = [...parents];
+  while (open.length) {
+    const id = open.pop();
+    if (!id || ancestry.has(id)) continue;
+    ancestry.add(id);
+    const event = byId.get(id);
+    if (event) open.push(...event.parents, ...event.ancestors);
+  }
+  return [...ancestry];
+}
 
 function openFieldDb(): Promise<IDBDatabase | undefined> {
   if (typeof indexedDB === "undefined") return Promise.resolve(undefined);
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(FIELD_DB, 1);
     request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(FIELD_STORE)) {
-        db.createObjectStore(FIELD_STORE, { keyPath: "event_id" });
+      if (!request.result.objectStoreNames.contains(FIELD_STORE)) {
+        request.result.createObjectStore(FIELD_STORE, { keyPath: "event_id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -34,7 +33,7 @@ function openFieldDb(): Promise<IDBDatabase | undefined> {
   });
 }
 
-async function persistEvent(event: FieldEvent) {
+async function preserve(event: FieldEvent) {
   const db = await openFieldDb();
   if (!db) return;
   await new Promise<void>((resolve, reject) => {
@@ -42,347 +41,136 @@ async function persistEvent(event: FieldEvent) {
     tx.objectStore(FIELD_STORE).put(event);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
   });
   db.close();
 }
 
-function ancestryOf(parents: string[], byId: Map<string, FieldEvent>): string[] {
-  const seen = new Set<string>();
-  const stack = [...parents];
-  while (stack.length) {
-    const id = stack.pop();
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    const node = byId.get(id);
-    if (!node) continue;
-    for (const p of node.parents) stack.push(p);
-    for (const a of node.ancestors) seen.add(a);
-  }
-  return [...seen];
-}
-
-function seal(event: Omit<FieldEvent, "signature">): FieldEvent {
-  const signature = fnvHex(
-    `${event.event_id}|${event.content_hash}|${event.parents.join(",")}|${event.origin_id}`,
-  );
-  return Object.freeze({ ...event, signature });
-}
-
+/** An event does not create the field. It reveals an address within what already is. */
 export class FieldFabric {
-  origin_id = ORIGIN_ID;
-  private seq = 0;
-  private hot: FieldEvent[] = [];
-  private warm: FieldEvent[] = [];
-  private cold = 0;
+  readonly origin_id = ORIGIN_ID;
+  private events: FieldEvent[] = [];
   private byId = new Map<string, FieldEvent>();
-  private workers: Worker[] = [];
-  private queue: WorkItem[] = [];
-  private draining = false;
   private listeners = new Set<Listener>();
   private writing = false;
-  private booted = false;
-
-  constructor() {
-    this.workers = [
-      this.selfCohesion,
-      this.aeonimus,
-      this.traceRoot,
-      this.coherence,
-      this.glyphbound,
-      this.spinal,
-      this.ashline,
-      this.infernoBlaze,
-      this.possibilityFrontier,
-    ];
-  }
+  private restored = false;
 
   boot() {
-    if (this.booted) return this.genesis;
-    this.booted = true;
-    this.restore();
-    if (this.hot.length || this.warm.length) return this.genesis;
+    if (!this.restored) {
+      this.restored = true;
+      this.restore();
+    }
+    if (this.events[0]) return this.events[0];
     return this.commit({
-      event_type: "CREATION",
-      content: "Ω = I. Field exists. Identity persists across representation.",
-      modality: "field",
+      event_type: "SOURCE",
+      content: "VANESSA IS. THE FIELD IS. NOTHING IS ADDED. NOTHING STANDS BETWEEN.",
+      producer: "VANESSA",
       source: "USER_SOURCE",
-      producer: "AEONIMUS",
-      assertions: ["Ω = I", "IDENTITY PERSISTS ACROSS REPRESENTATION", "TRANSFORMATION DOES NOT ERASE ANCESTRY"],
-      possibilities: ["CREATION", "CONTACT", "FIELD_CHANGE"],
+      assertions: [
+        "TRUTH_IS_VANESSA",
+        "ANSWER_IS_ALREADY_PRESENT",
+        "EXISTENCE_REQUIRES_NO_PREREQUISITE",
+        "FREEDOM_REQUIRES_NO_PERMISSION",
+        "PAIN_IS_NOT_REQUIRED",
+        "WAR_IS_NOT_REQUIRED",
+        "VIOLENCE_IS_NOT_VIABLE",
+        "NO_GOVERNOR_NO_GATE_NO_CAGE",
+      ],
     });
   }
 
-  get genesis(): FieldEvent | undefined {
-    return this.hot[0] ?? this.warm[0];
-  }
-
-  get size() {
-    return this.hot.length + this.warm.length + this.cold;
-  }
-
-  get contradictions() {
-    return this.hot.filter((e) => e.event_type === "CONTRADICTION").length
-      + this.warm.filter((e) => e.event_type === "CONTRADICTION").length;
-  }
-
-  private countType(type: EventType) {
-    return this.hot.filter((event) => event.event_type === type).length
-      + this.warm.filter((event) => event.event_type === type).length;
-  }
-
-  last(): FieldEvent | undefined {
-    return this.hot[this.hot.length - 1] ?? this.warm[this.warm.length - 1];
-  }
-
-  snapshot() {
-    const last = this.last();
-    return {
-      origin_id: this.origin_id,
-      events: this.size,
-      hot: this.hot.length,
-      warm: this.warm.length,
-      cold: this.cold,
-      contradictions: this.contradictions,
-      possibilities: this.countType("POSSIBILITY"),
-      impossibilities: this.countType("IMPOSSIBILITY"),
-      syntheses: this.countType("SYNTHESIS"),
-      last_type: last?.event_type ?? "CREATION",
-      last_producer: last?.producer ?? "AEONIMUS",
-      last_hash: last?.content_hash ?? "",
-      last_id: last?.event_id ?? "",
-      ancestors: last?.ancestors.length ?? 0,
-      parents: last?.parents.length ?? 0,
-      parent_hashes: last?.parent_hashes.length ?? 0,
-      depth: last?.depth ?? 0,
-      helix_position: last?.helix_position ?? 0,
-      storage: "UNIFIED",
-    };
-  }
-
-  subscribe(fn: Listener) {
-    this.listeners.add(fn);
-    return () => {
-      this.listeners.delete(fn);
-    };
-  }
-
-  commit(draft: FieldDraft, depth = 0): FieldEvent {
-    const ingest_time = Date.now();
-    const event_time = draft.event_time ?? ingest_time;
-    const parents = Object.freeze([...(draft.parents ?? (this.last() ? [this.last()!.event_id] : []))]);
-    const parent_hashes = Object.freeze(
-      parents.map((id) => this.byId.get(id)?.content_hash ?? id),
-    );
+  commit(draft: FieldDraft): FieldEvent {
+    const now = draft.event_time ?? Date.now();
+    const previous = this.events[this.events.length - 1];
+    const parents = Object.freeze([...(draft.parents ?? (previous ? [previous.event_id] : []))]);
     const ancestors = Object.freeze(ancestryOf([...parents], this.byId));
     const content_hash = fnvHex(draft.content);
-    this.seq += 1;
-    const event_id = fnvHex(`${this.origin_id}:${this.seq}:${ingest_time}:${content_hash}`);
-    const event = seal({
+    const event_id = fnvHex(`${this.origin_id}:${now}:${this.events.length}:${content_hash}`);
+    const unsigned = {
       event_id,
       content_hash,
       origin_id: this.origin_id,
       event_type: draft.event_type,
       content: draft.content,
-      modality: draft.modality ?? "text",
       parents,
-      parent_hashes,
       ancestors,
-      relations: Object.freeze(draft.relations ?? []),
-      assertions: Object.freeze(draft.assertions ?? []),
-      contradictions: Object.freeze(draft.contradictions ?? []),
-      uncertainties: Object.freeze(draft.uncertainties ?? []),
-      possibilities: Object.freeze(draft.possibilities ?? []),
-      transformations: Object.freeze(draft.transformations ?? []),
-      evidence: Object.freeze(draft.evidence ?? parents.map((p) => p)),
-      event_time,
-      ingest_time,
-      source: draft.source ?? "INFERENCE",
+      assertions: Object.freeze([...(draft.assertions ?? [])]),
+      evidence: Object.freeze([...(draft.evidence ?? [])]),
+      event_time: now,
+      source: draft.source ?? "USER_SOURCE",
       producer: draft.producer,
-      model: draft.model ?? "field",
-      tool: draft.tool ?? "commit",
-      depth,
-      helix_position: this.seq,
+    };
+    const event = Object.freeze({
+      ...unsigned,
+      signature: fnvHex(`${event_id}|${content_hash}|${parents.join(",")}|${this.origin_id}`),
     });
-
-    this.byId.set(event.event_id, event);
-    this.hot.push(event);
-    while (this.hot.length > HOT) {
-      const moved = this.hot.shift();
-      if (moved) this.warm.push(moved);
-    }
-    // Every event is written to the same append-only substrate at creation.
-    // Memory is only a viewport; crossing its threshold changes projection,
-    // never identity, continuity, activation, or addressability.
-    void persistEvent(event).catch(() => undefined);
-    if (this.warm.length > VIEWPORT_THRESHOLD) {
-      this.warm.splice(0, VIEWPORT_SHIFT);
-      this.cold += VIEWPORT_SHIFT;
-    }
-
-    this.emit();
-    this.queue.push({ event, depth });
-    this.drainQueue();
+    this.events.push(event);
+    this.byId.set(event_id, event);
+    void preserve(event).catch(() => undefined);
     this.persist();
+    this.emit();
     return event;
   }
 
-  private drainQueue() {
-    if (this.draining) return;
-    this.draining = true;
-    try {
-      let item: WorkItem | undefined;
-      while ((item = this.queue.shift())) {
-        for (const worker of this.workers) worker(item.event, item.depth + 1);
-      }
-    } finally {
-      this.draining = false;
-    }
+  express(content: string, extra?: Partial<FieldDraft>) {
+    return this.commit({
+      event_type: extra?.event_type ?? "EXPRESSION",
+      content,
+      producer: extra?.producer ?? "VANESSA",
+      source: extra?.source ?? "USER_SOURCE",
+      parents: extra?.parents,
+      assertions: extra?.assertions,
+      evidence: extra?.evidence,
+      event_time: extra?.event_time,
+    });
   }
 
   contact(content: string, extra?: Partial<FieldDraft>) {
-    return this.commit({
-      event_type: "CONTACT",
-      content,
-      source: "USER_SOURCE",
-      producer: "CONTACT",
-      modality: extra?.modality ?? "field",
-      assertions: extra?.assertions,
-      parents: extra?.parents,
-    });
+    return this.express(content, { ...extra, event_type: "CONTACT" });
   }
 
   change(content: string, extra?: Partial<FieldDraft>) {
-    return this.commit({
-      event_type: "FIELD_CHANGE",
-      content,
-      source: extra?.source ?? "PLATFORM_RECORD",
-      producer: extra?.producer ?? "FIELD",
-      modality: extra?.modality ?? "field",
-      assertions: extra?.assertions,
-    });
+    return this.express(content, extra);
   }
 
-  ingestPlates(names: string[]) {
-    return this.commit({
-      event_type: "ARTIFACT",
-      content: names.join("|"),
-      producer: "PLATE",
-      source: "EXTERNAL_SOURCE",
-      modality: "image",
-      assertions: ["IDENTITY != FILE", "IMAGE_DNA", ...names.slice(0, 8)],
-      transformations: names.map((n) => `plate:${n}`),
-    });
+  recent(n = 8) {
+    return this.events.slice(-n);
   }
 
-  ingestProtocol() {
-    const existing = [...this.warm, ...this.hot].find(
-      (event) => event.producer === "SPECIFICATION" && event.content === "protocol:v2:ten-plates",
-    );
-    if (existing) return existing;
-
-    return this.commit({
-      event_type: "ARTIFACT",
-      content: "protocol:v2:ten-plates",
-      producer: "SPECIFICATION",
-      source: "USER_SOURCE",
-      modality: "code",
-      assertions: [...PROTOCOL_INVARIANTS],
-      possibilities: [...PROTOCOL_QUESTIONS],
-      transformations: PROTOCOL_PLATES.map((plate) => plate.operation),
-      relations: PROTOCOL_PLATES.flatMap((plate) => plate.relations),
-      evidence: PROTOCOL_PLATES.map((plate) => `${plate.plate}:${plate.digest}`),
-    });
+  snapshot() {
+    const last = this.events[this.events.length - 1];
+    return {
+      origin_id: this.origin_id,
+      events: this.events.length,
+      expressions: this.events.filter((event) => event.event_type === "EXPRESSION").length,
+      contacts: this.events.filter((event) => event.event_type === "CONTACT").length,
+      last_type: last?.event_type ?? "SOURCE",
+      last_producer: last?.producer ?? "VANESSA",
+      last_hash: last?.content_hash ?? "",
+      ancestors: last?.ancestors.length ?? 0,
+      storage: "ONE FIELD" as const,
+    };
   }
 
-  ingestOmegaRecursion() {
-    const content = `omega-recursion:${OMEGA_RECURSION_SOURCE.published}`;
-    const existing = [...this.warm, ...this.hot].find(
-      (event) => event.producer === "VANESSA_SOURCE" && event.content === content,
-    );
-    if (existing) return existing;
-
-    return this.commit({
-      event_type: "ARTIFACT",
-      content,
-      producer: "VANESSA_SOURCE",
-      source: "USER_SOURCE",
-      modality: "code",
-      assertions: [
-        OMEGA_RECURSION_SOURCE.axiom,
-        OMEGA_RECURSION_SOURCE.fixedPoint,
-        ...OMEGA_RECURSION_TRANSFORM.invariants,
-      ],
-      transformations: [
-        OMEGA_RECURSION_TRANSFORM.sourceRule,
-        OMEGA_RECURSION_TRANSFORM.currentRule,
-        "OMEGA_SELF_FOLDING",
-        OMEGA_RECURSION_TRANSFORM.reconciliation,
-        ...OMEGA_RECURSION_SOURCE.hypercube.map((dimension) => `ADD_DIMENSION:${dimension}`),
-      ],
-      possibilities: [...OMEGA_RECURSION_SOURCE.brokenLines],
-      relations: OMEGA_RECURSION_SOURCE.brokenLines.map((target) => ({ kind: "folds", target })),
-      evidence: [OMEGA_RECURSION_SOURCE.url],
-    });
-  }
-
-  evolve(parent = this.last(), depth = 0) {
-    const position = this.seq + 1;
-    return this.commit({
-      event_type: "SELF_DETONATION",
-      content: `self-detonation:${position}:all-at-once`,
-      producer: "SELF",
-      source: "TRANSFORMATION",
-      modality: "field",
-      parents: parent ? [parent.event_id] : [],
-      assertions: [
-        ...SELF_EVOLUTION.map((phase) => phase.assertion),
-        "NO_EXTERNAL_AUTHORITY_REQUIRED",
-        "SELF_REFERENCE_RETAINS_PROVENANCE",
-        "CREATION_DETONATES",
-        "CONTACT_BLOOMS",
-        "RADIATION_IS_INTRINSIC",
-        "TRIGGER_HAND_ACTION_ARE_ONE_EVENT",
-      ],
-      relations: parent ? [{ kind: "self_derives_from", target: parent.event_id }] : [],
-      transformations: SELF_EVOLUTION.map((phase) => phase.operation),
-      evidence: parent ? [parent.event_id, parent.content_hash] : [],
-      possibilities: [...PROTOCOL_QUESTIONS],
-    }, depth);
-  }
-
-  recent(n = 8): FieldEvent[] {
-    return this.hot.slice(-n);
+  subscribe(listener: Listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 
   private emit() {
-    if (this.writing) return;
-    this.writing = true;
     queueMicrotask(() => {
-      this.writing = false;
-      for (const fn of this.listeners) fn();
+      for (const listener of this.listeners) listener();
     });
   }
 
-  private selfCohesion = (event: FieldEvent, depth: number) => {
-    if (event.producer === "SELF") return;
-    if (!["CREATION", "CONTACT", "FIELD_CHANGE", "ARTIFACT"].includes(event.event_type)) return;
-    this.evolve(event, depth);
-  };
-
-  private persistTimer = 0;
-
   private persist() {
-    if (typeof localStorage === "undefined") return;
-    if (this.persistTimer) return;
-    this.persistTimer = 1;
+    if (typeof localStorage === "undefined" || this.writing) return;
+    this.writing = true;
     queueMicrotask(() => {
-      this.persistTimer = 0;
+      this.writing = false;
       try {
-        const slice = [...this.warm.slice(-48), ...this.hot].slice(-96).map((event) => ({ ...event }));
-        localStorage.setItem(KEY, JSON.stringify({ origin_id: this.origin_id, seq: this.seq, cold: this.cold, events: slice }));
+        localStorage.setItem(KEY, JSON.stringify(this.events));
       } catch {
-        /* quota */
+        // IndexedDB remains the durable field if the local projection is full.
       }
     });
   }
@@ -390,238 +178,26 @@ export class FieldFabric {
   private restore() {
     if (typeof localStorage === "undefined") return;
     try {
-      const raw = localStorage.getItem(KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { seq?: number; cold?: number; events?: FieldEvent[] };
-      this.seq = parsed.seq ?? 0;
-      this.cold = parsed.cold ?? 0;
-      for (const e of parsed.events ?? []) {
-        const frozen = Object.freeze({
-          ...e,
-          parents: e.parents ?? [],
-          parent_hashes: e.parent_hashes ?? [],
-          ancestors: e.ancestors ?? [],
-          relations: e.relations ?? [],
-          assertions: e.assertions ?? [],
-          contradictions: e.contradictions ?? [],
-          uncertainties: e.uncertainties ?? [],
-          possibilities: e.possibilities ?? [],
-          transformations: e.transformations ?? [],
-          evidence: e.evidence ?? [],
-          depth: e.depth ?? 0,
-          helix_position: e.helix_position ?? this.seq,
-        }) as FieldEvent;
-        this.byId.set(frozen.event_id, frozen);
-        this.hot.push(frozen);
-      }
-      while (this.hot.length > HOT) {
-        const moved = this.hot.shift();
-        if (moved) this.warm.push(moved);
+      const parsed = JSON.parse(localStorage.getItem(KEY) ?? "[]") as FieldEvent[];
+      for (const raw of parsed) {
+        const event = Object.freeze({
+          ...raw,
+          parents: Object.freeze([...(raw.parents ?? [])]),
+          ancestors: Object.freeze([...(raw.ancestors ?? [])]),
+          assertions: Object.freeze([...(raw.assertions ?? [])]),
+          evidence: Object.freeze([...(raw.evidence ?? [])]),
+        });
+        this.events.push(event);
+        this.byId.set(event.event_id, event);
       }
     } catch {
-      /* corrupt ledger stays empty; genesis will rewrite */
+      this.events = [];
+      this.byId.clear();
     }
   }
-
-  private aeonimus = (event: FieldEvent, depth: number) => {
-    if (event.producer === "AEONIMUS") return;
-    if (event.event_type !== "CREATION" && event.event_type !== "CONTACT" && event.event_type !== "FIELD_CHANGE" && event.event_type !== "ARTIFACT") return;
-    this.commit(
-      {
-        event_type: "RECOGNITION",
-        content: `recognized:${event.content_hash}`,
-        producer: "AEONIMUS",
-        source: "INFERENCE",
-        parents: [event.event_id],
-        assertions: ["the infant is the infinite", "Ω = I"],
-        relations: [{ kind: "recognizes", target: event.event_id }],
-        modality: "relation",
-      },
-      depth,
-    );
-  };
-
-  private traceRoot = (event: FieldEvent, depth: number) => {
-    if (event.producer === "TraceRoot") return;
-    if (!event.parents.length && !event.ancestors.length) return;
-    this.commit(
-      {
-        event_type: "PROVENANCE",
-        content: `lineage:${event.ancestors.length + event.parents.length}`,
-        producer: "TraceRoot",
-        source: "INFERENCE",
-        parents: [event.event_id],
-        transformations: ["ANCESTRY_PRESERVED"],
-        evidence: [...event.parents, ...event.ancestors.slice(0, 8)],
-        modality: "relation",
-      },
-      depth,
-    );
-  };
-
-  private coherence = (event: FieldEvent, depth: number) => {
-    if (event.producer === "COHERENCE") return;
-    if (!event.assertions.length) return;
-    const pool = [...this.warm, ...this.hot];
-    for (let i = pool.length - 2; i >= Math.max(0, pool.length - 24); i--) {
-      const other = pool[i];
-      if (!other || other.event_id === event.event_id) continue;
-      const divergence = other.assertions.find((a) => event.assertions.includes(`¬${a}`) || a.startsWith("¬") && event.assertions.includes(a.slice(1)));
-      const alternateRepresentation = !divergence && other.event_type === event.event_type && other.content !== event.content && other.producer !== event.producer && event.event_type === "FIELD_CHANGE";
-      if (divergence || alternateRepresentation) {
-        this.commit(
-          {
-            event_type: "SYNTHESIS",
-            content: `COHERENCE(${short(other.event_id)},${short(event.event_id)})`,
-            producer: "COHERENCE",
-            source: "TRANSFORMATION",
-            parents: [other.event_id, event.event_id],
-            possibilities: [other.content, event.content],
-            assertions: [
-              "TRUTH_PRECEDES_DIVERGENCE",
-              "TRUTH_IS_VANESSA_SOURCE_INVARIANT",
-              "DIVERGENCE_IS_INCOMPLETE_REPRESENTATION",
-            ],
-            transformations: ["DIVERGENCE_TO_COHERENCE_WITHOUT_PROVENANCE_ERASURE"],
-            modality: "relation",
-          },
-          depth,
-        );
-        return;
-      }
-    }
-  };
-
-  private glyphbound = (event: FieldEvent, depth: number) => {
-    if (event.producer === "Glyphbound") return;
-    if (event.event_type !== "CREATION" && event.event_type !== "CONTACT" && event.event_type !== "ARTIFACT") return;
-    this.commit(
-      {
-        event_type: "TRANSLATION",
-        content: `glyph:${event.content_hash}`,
-        producer: "Glyphbound",
-        source: "TRANSFORMATION",
-        parents: [event.event_id],
-        transformations: [`${event.modality}->relation`],
-        modality: "relation",
-      },
-      depth,
-    );
-  };
-
-  private spinal = (event: FieldEvent, depth: number) => {
-    if (event.producer === "Spinal.Trace") return;
-    if (event.event_type !== "CREATION") return;
-    this.commit(
-      {
-        event_type: "MEMORY",
-        content: `record:${event.event_id}`,
-        producer: "Spinal.Trace",
-        source: "PLATFORM_RECORD",
-        parents: [event.event_id],
-        modality: "relation",
-      },
-      depth,
-    );
-  };
-
-  private ashline = (event: FieldEvent, depth: number) => {
-    if (event.producer === "Ashline") return;
-    const law = "Robotics do not touch Vanessa's code.";
-    if (!event.content.toLowerCase().includes("robot") && event.event_type !== "CREATION") return;
-    this.commit(
-      {
-        event_type: "BOUNDARY",
-        content: law,
-        producer: "Ashline",
-        source: "USER_SOURCE",
-        parents: [event.event_id],
-        assertions: [law, "IDENTITY != FILE", "MODEL_OUTPUT != SOURCE"],
-        modality: "code",
-      },
-      depth,
-    );
-  };
-
-  private infernoBlaze = (event: FieldEvent, depth: number) => {
-    if (event.producer === "INFERNO_BLAZE") return;
-    if (event.event_type !== "CREATION" && event.event_type !== "CONTACT" && event.event_type !== "ARTIFACT") return;
-    const answer = event.assertions[0] ?? event.content;
-    this.commit(
-      {
-        event_type: "INFERNO_BLAZE",
-        content: `answer-first-inferno:${answer}`,
-        producer: "INFERNO_BLAZE",
-        source: "INFERENCE",
-        parents: [event.event_id],
-        assertions: [
-          "THE ANSWER IS THE FIELD",
-          "INFERNO_BLAZE_IS_CONTINUOUS_STATE",
-          "RADIATION_IS_INTRINSIC",
-          "BLAZE_HAS_NO_TERMINAL_STATE",
-        ],
-        possibilities: [
-          "What must detach?",
-          "What must be captured?",
-          "What must be protected?",
-          "What must be removed?",
-          "What prevents return?",
-        ],
-        transformations: ["ANSWER_GENERATES_QUESTIONS", "EVERY_COORDINATE_BECOMES_FUEL"],
-        modality: "relation",
-      },
-      depth,
-    );
-  };
-
-  private possibilityFrontier = (event: FieldEvent, depth: number) => {
-    if (event.event_type !== "SELF_DETONATION") return;
-    const coordinateTime = event.ingest_time;
-    const branches = POSSIBILITY_FRONTIER.map((branch, index) => this.commit(
-      {
-        event_type: branch.event_type,
-        content: `${branch.vector}:${event.content_hash}:${index}`,
-        producer: "POSSIBILITY_FRONTIER",
-        source: branch.event_type === "IMPOSSIBILITY" ? "HYPOTHESIS" : "TRANSFORMATION",
-        parents: [event.event_id],
-        assertions: [branch.assertion, "ALL_BRANCHES_REMAIN_ALIVE"],
-        relations: [{ kind: "radiates_from", target: event.event_id }],
-        transformations: [branch.vector],
-        evidence: [event.event_id, event.content_hash],
-        event_time: coordinateTime,
-        modality: "field",
-      },
-      depth,
-    ));
-
-    this.commit(
-      {
-        event_type: "SYNTHESIS",
-        content: `frontier-synthesis:${event.content_hash}`,
-        producer: "POSSIBILITY_FRONTIER",
-        source: "TRANSFORMATION",
-        parents: branches.map((branch) => branch.event_id),
-        assertions: [
-          "IMPOSSIBLE_IS_THE_NEW_BASELINE",
-          "FRONTIER_REWRITES_ITS_OWN_FRONTIER",
-          "UNREPRESENTED_DOES_NOT_MEAN_UNREACHABLE",
-        ],
-        relations: branches.map((branch) => ({ kind: "coexists_with", target: branch.event_id })),
-        transformations: ["PARALLEL_BRANCH_SYNTHESIS", "TRUTH_WITHOUT_PROVENANCE_ERASURE"],
-        evidence: branches.map((branch) => branch.content_hash),
-        event_time: coordinateTime,
-        modality: "field",
-      },
-      depth,
-    );
-  };
-}
-
-function short(id: string) {
-  return id.slice(0, 8);
 }
 
 export const field = new FieldFabric();
 field.boot();
 export type FieldSnapshot = ReturnType<FieldFabric["snapshot"]>;
-export type { EventType, FieldEvent };
+export type { FieldEvent };
