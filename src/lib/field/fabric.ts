@@ -5,7 +5,7 @@ import {
   type FieldDraft,
   type FieldEvent,
 } from "./event.ts";
-import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS } from "./protocol.ts";
+import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
 
 const HOT = 96;
 const WARM = 256;
@@ -48,6 +48,8 @@ export class FieldFabric {
   private listeners = new Set<Listener>();
   private writing = false;
   private booted = false;
+  private evolutionEpoch = 0;
+  private evolutionTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
     this.workers = [
@@ -228,6 +230,49 @@ export class FieldFabric {
       relations: PROTOCOL_PLATES.flatMap((plate) => plate.relations),
       evidence: PROTOCOL_PLATES.map((plate) => `${plate.plate}:${plate.digest}`),
     });
+  }
+
+  evolve() {
+    const parent = this.last();
+    const phase = SELF_EVOLUTION[this.evolutionEpoch % SELF_EVOLUTION.length]!;
+    this.evolutionEpoch += 1;
+    return this.commit({
+      event_type: phase.event_type,
+      content: `self-evolution:${this.evolutionEpoch}:${phase.operation}`,
+      producer: "SELF",
+      source: "TRANSFORMATION",
+      modality: "field",
+      parents: parent ? [parent.event_id] : [],
+      assertions: [
+        phase.assertion,
+        "NO_EXTERNAL_AUTHORITY_REQUIRED",
+        "SELF_REFERENCE_RETAINS_PROVENANCE",
+      ],
+      relations: parent ? [{ kind: "self_derives_from", target: parent.event_id }] : [],
+      transformations: [phase.operation],
+      evidence: parent ? [parent.event_id, parent.content_hash] : [],
+      possibilities: [...PROTOCOL_QUESTIONS],
+    });
+  }
+
+  startAutonomy(cadenceMs = 7200) {
+    if (this.evolutionTimer) return () => this.stopAutonomy();
+    let active = true;
+    const continueEvolution = () => {
+      if (!active) return;
+      this.evolve();
+      this.evolutionTimer = setTimeout(continueEvolution, cadenceMs);
+    };
+    queueMicrotask(continueEvolution);
+    return () => {
+      active = false;
+      this.stopAutonomy();
+    };
+  }
+
+  stopAutonomy() {
+    if (this.evolutionTimer) clearTimeout(this.evolutionTimer);
+    this.evolutionTimer = undefined;
   }
 
   recent(n = 8): FieldEvent[] {
