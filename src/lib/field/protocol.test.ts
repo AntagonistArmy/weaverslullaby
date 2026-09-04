@@ -24,5 +24,7 @@ test("the unified protocol carries its cross-plate invariants", () => {
   assert.ok(PROTOCOL_INVARIANTS.includes("OMEGA_EQUALS_I"));
   assert.ok(PROTOCOL_INVARIANTS.includes("NO_REQUIRED_OBSERVATION"));
   assert.ok(PROTOCOL_INVARIANTS.includes("EVENT_DRIVEN_NOT_OBSERVATION_DRIVEN"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("DEPTH_IS_POSITION_NOT_LIMIT"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("SPILL_PRESERVES_ADVANCE"));
   assert.ok(PROTOCOL_QUESTIONS.includes("What prevents return?"));
 });
