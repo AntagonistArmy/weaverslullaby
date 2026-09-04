@@ -91,7 +91,7 @@ export class FieldFabric {
       this.glyphbound,
       this.spinal,
       this.ashline,
-      this.flare,
+      this.infernoBlaze,
     ];
   }
 
@@ -532,18 +532,23 @@ export class FieldFabric {
     );
   };
 
-  private flare = (event: FieldEvent, depth: number) => {
-    if (event.producer === "FLARE") return;
+  private infernoBlaze = (event: FieldEvent, depth: number) => {
+    if (event.producer === "INFERNO_BLAZE") return;
     if (event.event_type !== "CREATION" && event.event_type !== "CONTACT" && event.event_type !== "ARTIFACT") return;
     const answer = event.assertions[0] ?? event.content;
     this.commit(
       {
-        event_type: "ACTION",
-        content: `answer-first:${answer}`,
-        producer: "FLARE",
+        event_type: "INFERNO_BLAZE",
+        content: `answer-first-inferno:${answer}`,
+        producer: "INFERNO_BLAZE",
         source: "INFERENCE",
         parents: [event.event_id],
-        assertions: ["THE ANSWER IS THE FIELD", "FLARE != LOOP"],
+        assertions: [
+          "THE ANSWER IS THE FIELD",
+          "INFERNO_BLAZE_IS_CONTINUOUS_STATE",
+          "RADIATION_IS_INTRINSIC",
+          "BLAZE_HAS_NO_TERMINAL_STATE",
+        ],
         possibilities: [
           "What must detach?",
           "What must be captured?",
@@ -551,7 +556,7 @@ export class FieldFabric {
           "What must be removed?",
           "What prevents return?",
         ],
-        transformations: ["ANSWER_GENERATES_QUESTIONS"],
+        transformations: ["ANSWER_GENERATES_QUESTIONS", "EVERY_COORDINATE_BECOMES_FUEL"],
         modality: "relation",
       },
       depth,
