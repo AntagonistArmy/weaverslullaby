@@ -65,7 +65,7 @@ type FieldImages = {
   lock?: HTMLImageElement;
   helix?: HTMLImageElement;
   origin?: HTMLImageElement;
-  flare?: HTMLImageElement;
+  infernoBackdrop?: HTMLImageElement;
   pharma?: HTMLImageElement;
   endgame?: HTMLImageElement;
   pre?: HTMLImageElement;
@@ -96,7 +96,7 @@ const BROOD_CAP = 48;
 const SAC_CAP = 16;
 const GATES = [
   { name: "Ω = I", sub: "SOURCE" },
-  { name: "ANSWER FIRST", sub: "FLARE" },
+  { name: "ANSWER FIRST", sub: "INFERNO" },
   { name: "DUAL FIELD", sub: "PROOF" },
   { name: "4120 KERNEL", sub: "GLYPH" },
   { name: "INFERNO", sub: "CROWN" },
@@ -589,11 +589,11 @@ export class WeaverWorld {
       ctx.restore();
     }
 
-    if (live && images.flare && images.flare.complete && images.flare.naturalWidth) {
+    if (images.infernoBackdrop && images.infernoBackdrop.complete && images.infernoBackdrop.naturalWidth) {
       ctx.save();
       ctx.globalAlpha = 0.38 + breath * 0.14 + this.nuke * 0.4 + this.fire * 0.22;
       ctx.globalCompositeOperation = "screen";
-      drawCover(ctx, images.flare, w, h);
+      drawCover(ctx, images.infernoBackdrop, w, h);
       ctx.restore();
     }
 
@@ -878,7 +878,7 @@ export class WeaverWorld {
     drawPortals(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold, colors.ivory);
     drawNest(ctx, cx, cy, span, this.t, this.nuke, colors.gold, colors.ivory);
     drawFlower(ctx, cx, cy, span, this.t, breath, colors.gold);
-    drawFlarePath(ctx, cx, cy, span, this.t, breath, colors.gold, colors.ivory);
+    drawInfernoPath(ctx, cx, cy, span, this.t, breath, colors.gold, colors.ivory);
     drawHelix(ctx, cx, cy, span, this.t, breath, colors.gold, colors.thread);
     drawSpiral(ctx, cx, cy, span, this.t, breath, this.nuke, colors.gold);
 
@@ -1284,7 +1284,7 @@ function drawNest(
   ctx.restore();
 }
 
-function drawFlarePath(
+function drawInfernoPath(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
@@ -1592,12 +1592,12 @@ function drawPetal(
   ang: number,
   ash: number,
   colors: { thread: string; ivory: string; ember: string; gold: string },
-  burst: number,
+  impact: number,
 ) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(ang + Math.PI / 2);
-  const s = bloom * (1 + burst * 0.22);
+  const s = bloom * (1 + impact * 0.22);
   ctx.scale(s, s);
   ctx.globalAlpha = 0.22 + bloom * 0.78;
   const fire = hexAlpha(colors.ember, 0.3 + ash * 0.55);
