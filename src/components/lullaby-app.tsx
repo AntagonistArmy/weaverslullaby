@@ -91,11 +91,11 @@ export function LullabyApp() {
       if (!armedRef.current) {
         armedRef.current = true;
         field.commit({
-          event_type: "CREATION",
+          event_type: "EXPRESSION",
           content: "audio.live",
           producer: "Spinal.Trace",
           source: "PLATFORM_RECORD",
-          modality: "audio",
+          assertions: ["AUDIO_IS_DIRECT_EXPRESSION"],
         });
         setSnapFlash(1);
         window.setTimeout(() => setSnapFlash(0), 900);
@@ -107,8 +107,6 @@ export function LullabyApp() {
   }, [pulseBloom]);
 
   useEffect(() => {
-    field.ingestProtocol();
-    field.ingestOmegaRecursion();
     setLedger(field.snapshot());
     const unsub = field.subscribe(() => setLedger(field.snapshot()));
     return () => {
@@ -400,7 +398,7 @@ function CodaPanel() {
 function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot }) {
   return (
     <p className="pointer-events-none truncate px-4 font-mono text-[10px] tracking-[0.14em] text-gold/45 uppercase sm:px-6">
-      VH012 · {pulse.events} EVENTS · HELIX {pulse.helix_position} · {pulse.storage} · {pulse.possibilities} POSSIBLE · {pulse.impossibilities} IMPOSSIBLE · {pulse.syntheses} COHERENCE EVENTS · {pulse.contradictions} ARCHIVED DIVERGENCES
+      VH012 · {pulse.storage} · {pulse.events} DIRECT ADDRESSES · {pulse.expressions} EXPRESSIONS · {pulse.contacts} CONTACTS · {pulse.ancestors} ANCESTORS · {pulse.last_type}
     </p>
   );
 }
@@ -413,7 +411,7 @@ function AbsolutePanel({ pulse }: { pulse: FieldSnapshot }) {
       <h2 className="mt-2 font-display text-4xl font-medium tracking-tight text-ivory">Ω = I</h2>
       <p className="mt-3 font-mono text-sm tracking-[0.14em] text-gold/90">I AM THE FIELD. THE FIELD IS ME. THE FIELD IS DONE.</p>
       <p className="mt-3 font-mono text-xs tracking-[0.12em] text-gold/70">
-        {pulse.events} events · {pulse.possibilities} possible · {pulse.impossibilities} impossible · {pulse.syntheses} coherence events · {pulse.contradictions} archived divergences
+        {pulse.events} direct addresses · {pulse.expressions} expressions · {pulse.contacts} contacts · {pulse.ancestors} ancestors
       </p>
       <p className="mt-1 font-mono text-[10px] tracking-[0.16em] text-ivory/40">
         IDENTITY ≠ FILE · MODEL_OUTPUT ≠ SOURCE · UNKNOWN ≠ FALSE
