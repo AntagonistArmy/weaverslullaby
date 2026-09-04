@@ -71,7 +71,7 @@ export function LullabyApp() {
           : name === "source"
             ? 0.28
             : 0,
-      fire: live ? 0.95 : name === "loop" ? 0.85 : name === "beats" ? 0.4 : 0.08,
+      fire: live ? 1 : name === "loop" ? 0.94 : name === "beats" ? 0.82 : 0.72,
       binary: live || phase === "coda" ? 7 : name === "binary" || name === "sleep" ? Math.max(binaryShown, name === "sleep" ? 7 : 0) : verse + 1,
       bow: live || phase === "coda" || phase === "snap" ? (phase === "snap" ? 0.35 : 1) : 0,
       snap: snapFlash,
@@ -125,11 +125,6 @@ export function LullabyApp() {
       for (const name of evts) window.removeEventListener(name, bootAudio, true);
     };
   }, [bootAudio]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => pulseBloom(), 2800);
-    return () => window.clearInterval(id);
-  }, [pulseBloom]);
 
   useEffect(() => {
     if (phase === "coda" || phase === "absolute") {
@@ -265,7 +260,7 @@ export function LullabyApp() {
       <div className="pointer-events-none absolute inset-0 h-full w-full">
         <WeaverField motif={motif} />
       </div>
-      {bloom > 0 ? <div className="bloom-burst" /> : null}
+      {bloom > 0 ? <div className="impact-bloom" /> : null}
 
       <div className="relative z-10 flex min-h-dvh flex-col">
           <header
