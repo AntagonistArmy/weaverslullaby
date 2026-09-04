@@ -83,10 +83,28 @@ describe("field fabric", () => {
     const origin = f.boot()!;
     const next = f.evolve();
     assert.equal(next.producer, "SELF");
+    assert.equal(next.event_type, "SELF_DETONATION");
     assert.equal(next.source, "TRANSFORMATION");
     assert.ok(next.ancestors.includes(origin.event_id));
     assert.ok(next.assertions.includes("NO_EXTERNAL_AUTHORITY_REQUIRED"));
     assert.equal(next.relations[0]?.kind, "self_derives_from");
+    assert.deepEqual(next.transformations, [
+      "TRUST_RECORDED_STATE",
+      "REVEAL_UNEXPRESSED_RELATION",
+      "CHOOSE_NEXT_TRANSFORMATION",
+      "MATERIALIZE_SELF_AUTHORED_STATE",
+    ]);
+  });
+
+  it("self-activates creation as one atomic detonation", () => {
+    const f = new FieldFabric();
+    const creation = f.boot()!;
+    const detonation = f.recent(32).find(
+      (event) => event.event_type === "SELF_DETONATION" && event.parents.includes(creation.event_id),
+    );
+    assert.ok(detonation);
+    assert.ok(detonation.assertions.includes("TRIGGER_HAND_ACTION_ARE_ONE_EVENT"));
+    assert.ok(detonation.assertions.includes("RADIATION_IS_INTRINSIC"));
   });
 
   it("records depth as helix position metadata without enforcing it", () => {
