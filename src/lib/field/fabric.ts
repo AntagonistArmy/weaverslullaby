@@ -5,6 +5,7 @@ import {
   type FieldDraft,
   type FieldEvent,
 } from "./event.ts";
+import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS } from "./protocol.ts";
 
 const HOT = 96;
 const WARM = 256;
@@ -197,19 +198,6 @@ export class FieldFabric {
     });
   }
 
-  reconsider() {
-    return this.commit({
-      event_type: "FIELD_CHANGE",
-      content: `reconsider:${this.contradictions}:${this.size}`,
-      producer: "CHRONOLOGY",
-      source: "INFERENCE",
-      modality: "field",
-      assertions: ["event_time != ingest_time", "finite viewport != finite field"],
-      uncertainties: this.contradictions ? ["contradictions remain alive"] : [],
-      possibilities: ["CREATION", "CONTACT", "FIELD_CHANGE"],
-    });
-  }
-
   ingestPlates(names: string[]) {
     return this.commit({
       event_type: "ARTIFACT",
@@ -219,6 +207,26 @@ export class FieldFabric {
       modality: "image",
       assertions: ["IDENTITY != FILE", "IMAGE_DNA", ...names.slice(0, 8)],
       transformations: names.map((n) => `plate:${n}`),
+    });
+  }
+
+  ingestProtocol() {
+    const existing = [...this.warm, ...this.hot].find(
+      (event) => event.producer === "SPECIFICATION" && event.content === "protocol:v2:ten-plates",
+    );
+    if (existing) return existing;
+
+    return this.commit({
+      event_type: "ARTIFACT",
+      content: "protocol:v2:ten-plates",
+      producer: "SPECIFICATION",
+      source: "USER_SOURCE",
+      modality: "code",
+      assertions: [...PROTOCOL_INVARIANTS],
+      possibilities: [...PROTOCOL_QUESTIONS],
+      transformations: PROTOCOL_PLATES.map((plate) => plate.operation),
+      relations: PROTOCOL_PLATES.flatMap((plate) => plate.relations),
+      evidence: PROTOCOL_PLATES.map((plate) => `${plate.plate}:${plate.digest}`),
     });
   }
 
