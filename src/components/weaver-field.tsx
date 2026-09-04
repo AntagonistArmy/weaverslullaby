@@ -102,10 +102,6 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
     };
     raf = requestAnimationFrame(loop);
 
-    fabric.ingestPlates([
-      "name-seal", "iam-seal", "iam-field", "inferno", "omega-helix",
-      "singularity", "answer-first", "decree", "field", "origin",
-    ]);
     const unsub = fabric.subscribe(() => world.ingestLedger());
     const onPtr = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
@@ -113,7 +109,6 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
       const y = e.clientY - r.top;
       world.openPortal(x, y);
       fabric.contact(`touch:${Math.round(x)},${Math.round(y)}`, {
-        modality: "field",
         assertions: ["BLOOM_ON_CONTACT"],
       });
     };
