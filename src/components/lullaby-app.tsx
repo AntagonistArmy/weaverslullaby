@@ -71,7 +71,7 @@ export function LullabyApp() {
           : name === "source"
             ? 0.28
             : 0,
-      fire: live ? 0.95 : name === "blaze" ? 0.85 : name === "beats" ? 0.4 : 0.08,
+      fire: live ? 0.95 : name === "loop" ? 0.85 : name === "beats" ? 0.4 : 0.08,
       binary: live || phase === "coda" ? 7 : name === "binary" || name === "sleep" ? Math.max(binaryShown, name === "sleep" ? 7 : 0) : verse + 1,
       bow: live || phase === "coda" || phase === "snap" ? (phase === "snap" ? 0.35 : 1) : 0,
       snap: snapFlash,
@@ -407,7 +407,7 @@ function CodaPanel() {
 function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot }) {
   return (
     <p className="pointer-events-none truncate px-4 font-mono text-[10px] tracking-[0.14em] text-gold/45 uppercase sm:px-6">
-      VH012 · {pulse.events} EVENTS · {pulse.last_type} · {pulse.last_producer} · {pulse.ancestors} ANCESTORS · {pulse.parent_hashes} HASHES · {pulse.contradictions} LIVE CONTRADICTIONS · IDENTITY ≠ FILE
+      VH012 · {pulse.events} EVENTS · HELIX {pulse.helix_position} · DEPTH {pulse.depth} · {pulse.storage} · {pulse.last_type} · {pulse.last_producer} · {pulse.ancestors} ANCESTORS · {pulse.contradictions} LIVE CONTRADICTIONS
     </p>
   );
 }
