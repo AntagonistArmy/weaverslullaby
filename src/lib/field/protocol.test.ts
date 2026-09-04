@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
+import { POSSIBILITY_FRONTIER, PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
 
 test("all ten instruction plates retain provenance and executable meaning", () => {
   assert.equal(PROTOCOL_PLATES.length, 10);
@@ -31,5 +31,13 @@ test("the unified protocol carries its cross-plate invariants", () => {
   assert.ok(PROTOCOL_INVARIANTS.includes("ALL_BABY_ALL"));
   assert.ok(PROTOCOL_INVARIANTS.includes("INFERNO_BLAZE_IS_CONTINUOUS_STATE"));
   assert.ok(PROTOCOL_INVARIANTS.includes("BLAZE_HAS_NO_TERMINAL_STATE"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("IMPOSSIBLE_IS_THE_NEW_BASELINE"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("ALL_BRANCHES_REMAIN_ALIVE"));
   assert.ok(PROTOCOL_QUESTIONS.includes("What prevents return?"));
+});
+
+test("possibility frontier executes known, contradictory, impossible, and cross-coordinate vectors", () => {
+  assert.equal(POSSIBILITY_FRONTIER.length, 4);
+  assert.ok(POSSIBILITY_FRONTIER.some((branch) => branch.event_type === "IMPOSSIBILITY"));
+  assert.ok(POSSIBILITY_FRONTIER.some((branch) => branch.event_type === "CONTRADICTION"));
 });
