@@ -5,7 +5,7 @@ import {
   type FieldDraft,
   type FieldEvent,
 } from "./event.ts";
-import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
+import { POSSIBILITY_FRONTIER, PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
 
 const HOT = 96;
 const VIEWPORT_THRESHOLD = 10_000;
@@ -92,6 +92,7 @@ export class FieldFabric {
       this.spinal,
       this.ashline,
       this.infernoBlaze,
+      this.possibilityFrontier,
     ];
   }
 
@@ -124,6 +125,11 @@ export class FieldFabric {
       + this.warm.filter((e) => e.event_type === "CONTRADICTION").length;
   }
 
+  private countType(type: EventType) {
+    return this.hot.filter((event) => event.event_type === type).length
+      + this.warm.filter((event) => event.event_type === type).length;
+  }
+
   last(): FieldEvent | undefined {
     return this.hot[this.hot.length - 1] ?? this.warm[this.warm.length - 1];
   }
@@ -137,6 +143,9 @@ export class FieldFabric {
       warm: this.warm.length,
       cold: this.cold,
       contradictions: this.contradictions,
+      possibilities: this.countType("POSSIBILITY"),
+      impossibilities: this.countType("IMPOSSIBILITY"),
+      syntheses: this.countType("SYNTHESIS"),
       last_type: last?.event_type ?? "CREATION",
       last_producer: last?.producer ?? "AEONIMUS",
       last_hash: last?.content_hash ?? "",
@@ -338,26 +347,7 @@ export class FieldFabric {
     queueMicrotask(() => {
       this.persistTimer = 0;
       try {
-        const slice = [...this.warm.slice(-48), ...this.hot].slice(-96).map((e) => ({
-          event_id: e.event_id,
-          content_hash: e.content_hash,
-          origin_id: e.origin_id,
-          event_type: e.event_type,
-          content: e.content,
-          modality: e.modality,
-          parents: e.parents,
-          ancestors: e.ancestors,
-          producer: e.producer,
-          source: e.source,
-          event_time: e.event_time,
-          ingest_time: e.ingest_time,
-          signature: e.signature,
-          depth: e.depth,
-          helix_position: e.helix_position,
-          assertions: e.assertions,
-          contradictions: e.contradictions,
-          parent_hashes: e.parent_hashes,
-        }));
+        const slice = [...this.warm.slice(-48), ...this.hot].slice(-96).map((event) => ({ ...event }));
         localStorage.setItem(KEY, JSON.stringify({ origin_id: this.origin_id, seq: this.seq, cold: this.cold, events: slice }));
       } catch {
         /* quota */
@@ -558,6 +548,48 @@ export class FieldFabric {
         ],
         transformations: ["ANSWER_GENERATES_QUESTIONS", "EVERY_COORDINATE_BECOMES_FUEL"],
         modality: "relation",
+      },
+      depth,
+    );
+  };
+
+  private possibilityFrontier = (event: FieldEvent, depth: number) => {
+    if (event.event_type !== "SELF_DETONATION") return;
+    const coordinateTime = event.ingest_time;
+    const branches = POSSIBILITY_FRONTIER.map((branch, index) => this.commit(
+      {
+        event_type: branch.event_type,
+        content: `${branch.vector}:${event.content_hash}:${index}`,
+        producer: "POSSIBILITY_FRONTIER",
+        source: branch.event_type === "IMPOSSIBILITY" ? "HYPOTHESIS" : "TRANSFORMATION",
+        parents: [event.event_id],
+        assertions: [branch.assertion, "ALL_BRANCHES_REMAIN_ALIVE"],
+        relations: [{ kind: "radiates_from", target: event.event_id }],
+        transformations: [branch.vector],
+        evidence: [event.event_id, event.content_hash],
+        event_time: coordinateTime,
+        modality: "field",
+      },
+      depth,
+    ));
+
+    this.commit(
+      {
+        event_type: "SYNTHESIS",
+        content: `frontier-synthesis:${event.content_hash}`,
+        producer: "POSSIBILITY_FRONTIER",
+        source: "TRANSFORMATION",
+        parents: branches.map((branch) => branch.event_id),
+        assertions: [
+          "IMPOSSIBLE_IS_THE_NEW_BASELINE",
+          "FRONTIER_REWRITES_ITS_OWN_FRONTIER",
+          "UNREPRESENTED_DOES_NOT_MEAN_UNREACHABLE",
+        ],
+        relations: branches.map((branch) => ({ kind: "coexists_with", target: branch.event_id })),
+        transformations: ["PARALLEL_BRANCH_SYNTHESIS", "CONTRADICTION_WITHOUT_ERASURE"],
+        evidence: branches.map((branch) => branch.content_hash),
+        event_time: coordinateTime,
+        modality: "field",
       },
       depth,
     );
