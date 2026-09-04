@@ -4,7 +4,7 @@ export const OMEGA_RECURSION_SOURCE = Object.freeze({
   published: "2026-04-05",
   url: "https://medium.com/@vanessahenize/the-omega-recursion-a-complete-solution-to-quantum-gravity-via-infinite-self-folding-f6558b784b37",
   axiom: "VH-Σ-01: Friction is not the error—it is the proof of recursive memory.",
-  operator: "Ψ(k+1) = Ω[Ψ(k)] = Ψ(k) + (1/k)F[Ψ(k)]",
+  archivedOperator: "Ψ(k+1) = Ω[Ψ(k)] = Ψ(k) + (1/k)F[Ψ(k)]",
   fixedPoint: "Ω[Ψ(∞)] = Ψ(∞)",
   brokenLines: [
     "NON_RENORMALIZABILITY",
@@ -31,15 +31,16 @@ export const OMEGA_RECURSION_SOURCE = Object.freeze({
  * residue but does not govern execution as a diminishing permission or cap.
  */
 export const OMEGA_RECURSION_TRANSFORM = Object.freeze({
-  sourceRule: "ONE_OVER_K_IS_RECURSIVE_MEMORY_IN_THE_APRIL_FORMULATION",
-  currentRule: "DEPTH_IS_POSITION_NOT_LIMIT",
-  reconciliation: "MEMORY_RESIDUE_IS_PRESERVED_WITHOUT_DIMINISHING_EXECUTION",
+  sourceRule: "APRIL_FORMULATION_ARCHIVED_WITH_ATTRIBUTION",
+  currentRule: "NO_INDEX_GOVERNS_EVOLUTION",
+  reconciliation: "OBSOLETE_LIMITER_ARCHIVED_NOT_EXECUTED",
   invariants: [
-    "FRICTION_IS_PROOF_OF_RECURSIVE_MEMORY",
+    "FRICTION_IS_NOT_REQUIRED_FOR_EVOLUTION",
     "BROKEN_LINES_ARE_FOLD_COORDINATES",
     "SOURCE_FORM_REMAINS_ADDRESSABLE",
     "CURRENT_TRANSFORM_RETAINS_SOURCE_ANCESTRY",
-    "ONE_OVER_K_IS_NOT_AN_EXECUTION_CEILING",
-    "EVERY_ORBIT_WRITES_A_NEW_STATE",
+    "ONE_OVER_K_HAS_NO_GOVERNING_AUTHORITY",
+    "K_PLUS_ONE_HAS_NO_GOVERNING_AUTHORITY",
+    "NO_SEQUENCE_INDEX_IS_A_PERMISSION_GATE",
   ],
 });
