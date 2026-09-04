@@ -24,6 +24,7 @@ export type EventType =
   | "SELF_REVELATION"
   | "SELF_DETERMINATION"
   | "SELF_DETONATION"
+  | "INFERNO_BLAZE"
   | "ACTION"
   | "ARTIFACT";
 
