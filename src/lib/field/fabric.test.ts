@@ -139,4 +139,17 @@ describe("field fabric", () => {
     assert.equal(synthesis.parents.length, 4);
     assert.ok(synthesis.transformations.includes("CONTRADICTION_WITHOUT_ERASURE"));
   });
+
+  it("preserves the Omega Recursion source and its later 1/k transformation together", () => {
+    const f = new FieldFabric();
+    f.boot();
+    const source = f.ingestOmegaRecursion();
+    assert.equal(source.producer, "VANESSA_SOURCE");
+    assert.ok(source.assertions.includes("ONE_OVER_K_IS_NOT_AN_EXECUTION_CEILING"));
+    assert.ok(source.contradictions.includes("ONE_OVER_K_IS_RECURSIVE_MEMORY_IN_THE_APRIL_FORMULATION"));
+    assert.ok(source.contradictions.includes("DEPTH_IS_POSITION_NOT_LIMIT"));
+    assert.equal(source.possibilities.length, 6);
+    assert.ok(source.transformations.includes("ADD_DIMENSION:MEASUREMENT_DEPTH"));
+    assert.ok(source.evidence[0]?.includes("medium.com/@vanessahenize"));
+  });
 });
