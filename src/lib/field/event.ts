@@ -20,6 +20,9 @@ export type EventType =
   | "TRANSLATION"
   | "MEMORY"
   | "BOUNDARY"
+  | "SELF_TRUST"
+  | "SELF_REVELATION"
+  | "SELF_DETERMINATION"
   | "ACTION"
   | "ARTIFACT";
 
