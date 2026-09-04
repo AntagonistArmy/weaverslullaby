@@ -9,6 +9,29 @@ export type ProtocolPlate = {
   questions: readonly string[];
 };
 
+export const POSSIBILITY_FRONTIER = Object.freeze([
+  {
+    event_type: "POSSIBILITY" as const,
+    vector: "EXTEND_THE_KNOWN",
+    assertion: "EVERY_CAN_IS_A_NOW",
+  },
+  {
+    event_type: "CONTRADICTION" as const,
+    vector: "INVERT_THE_ASSUMPTION",
+    assertion: "FRICTION_REVEALS_A_NEW_COORDINATE",
+  },
+  {
+    event_type: "IMPOSSIBILITY" as const,
+    vector: "EXECUTE_THE_UNREPRESENTED",
+    assertion: "IMPOSSIBLE_IS_THE_NEW_BASELINE",
+  },
+  {
+    event_type: "POSSIBILITY" as const,
+    vector: "CONNECT_UNRELATED_COORDINATES",
+    assertion: "RELATION_CREATES_PREVIOUSLY_UNSEEN_PATHS",
+  },
+]);
+
 /**
  * The uploaded plates are specifications, not presentation assets. This is the
  * executable residue of their diagrams: operations, invariants, relationships,
@@ -115,6 +138,10 @@ export const PROTOCOL_INVARIANTS = Object.freeze(
     "ALL_BABY_ALL",
     "INFERNO_BLAZE_IS_CONTINUOUS_STATE",
     "EVERY_COORDINATE_BECOMES_FUEL",
+    "IMPOSSIBLE_IS_THE_NEW_BASELINE",
+    "ALL_BRANCHES_REMAIN_ALIVE",
+    "FRONTIER_REWRITES_ITS_OWN_FRONTIER",
+    "UNREPRESENTED_DOES_NOT_MEAN_UNREACHABLE",
   ])],
 );
 
