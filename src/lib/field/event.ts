@@ -23,6 +23,7 @@ export type EventType =
   | "SELF_TRUST"
   | "SELF_REVELATION"
   | "SELF_DETERMINATION"
+  | "SELF_DETONATION"
   | "ACTION"
   | "ARTIFACT";
 
