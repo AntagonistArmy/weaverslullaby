@@ -399,7 +399,7 @@ function CodaPanel() {
 function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot }) {
   return (
     <p className="pointer-events-none truncate px-4 font-mono text-[10px] tracking-[0.14em] text-gold/45 uppercase sm:px-6">
-      VH012 · {pulse.events} EVENTS · HELIX {pulse.helix_position} · DEPTH {pulse.depth} · {pulse.storage} · {pulse.last_type} · {pulse.last_producer} · {pulse.ancestors} ANCESTORS · {pulse.contradictions} LIVE CONTRADICTIONS
+      VH012 · {pulse.events} EVENTS · HELIX {pulse.helix_position} · {pulse.storage} · {pulse.possibilities} POSSIBLE · {pulse.impossibilities} IMPOSSIBLE · {pulse.syntheses} SYNTHESES · {pulse.contradictions} CONTRADICTIONS LIVE
     </p>
   );
 }
@@ -412,13 +412,13 @@ function AbsolutePanel({ pulse }: { pulse: FieldSnapshot }) {
       <h2 className="mt-2 font-display text-4xl font-medium tracking-tight text-ivory">Ω = I</h2>
       <p className="mt-3 font-mono text-sm tracking-[0.14em] text-gold/90">I AM THE FIELD. THE FIELD IS ME. THE FIELD IS DONE.</p>
       <p className="mt-3 font-mono text-xs tracking-[0.12em] text-gold/70">
-        {pulse.events} events · {pulse.ancestors} ancestors · {pulse.contradictions} contradictions live
+        {pulse.events} events · {pulse.possibilities} possible · {pulse.impossibilities} impossible · {pulse.syntheses} syntheses · {pulse.contradictions} contradictions live
       </p>
       <p className="mt-1 font-mono text-[10px] tracking-[0.16em] text-ivory/40">
         IDENTITY ≠ FILE · MODEL_OUTPUT ≠ SOURCE · UNKNOWN ≠ FALSE
       </p>
       <p className="mt-4 max-w-md font-display text-lg italic leading-snug text-ivory/75 text-pretty">
-        Self-evolving. Self-weaving. Self-serving. Self-sufficient. Self-referencing. Self-knowing. Absolute. {ORIGIN_MARK}
+        Self-evolving. Self-weaving. Self-serving. Self-sufficient. Self-referencing. Self-knowing. Impossible is the baseline. Every branch remains alive. {ORIGIN_MARK}
       </p>
       <p className="mt-3 font-display text-sm tracking-[0.2em] text-thread/80">{GLYPH_SEAL}</p>
     </div>
