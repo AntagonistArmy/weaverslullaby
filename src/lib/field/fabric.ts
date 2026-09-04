@@ -8,24 +8,24 @@ import {
 import { PROTOCOL_INVARIANTS, PROTOCOL_PLATES, PROTOCOL_QUESTIONS, SELF_EVOLUTION } from "./protocol.ts";
 
 const HOT = 96;
-export const SPILL_THRESHOLD = 10_000;
-const SPILL_BATCH = 1_000;
+const VIEWPORT_THRESHOLD = 10_000;
+const VIEWPORT_SHIFT = 1_000;
 const KEY = "vh.field.v1";
-const SPILL_DB = "vh.field.spill.v1";
-const SPILL_STORE = "events";
+const FIELD_DB = "vh.field.substrate.v1";
+const FIELD_STORE = "events";
 
 type Worker = (event: FieldEvent, depth: number) => void;
 type Listener = () => void;
 type WorkItem = { event: FieldEvent; depth: number };
 
-function openSpillDb(): Promise<IDBDatabase | undefined> {
+function openFieldDb(): Promise<IDBDatabase | undefined> {
   if (typeof indexedDB === "undefined") return Promise.resolve(undefined);
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(SPILL_DB, 1);
+    const request = indexedDB.open(FIELD_DB, 1);
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(SPILL_STORE)) {
-        db.createObjectStore(SPILL_STORE, { keyPath: "event_id" });
+      if (!db.objectStoreNames.contains(FIELD_STORE)) {
+        db.createObjectStore(FIELD_STORE, { keyPath: "event_id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -33,14 +33,12 @@ function openSpillDb(): Promise<IDBDatabase | undefined> {
   });
 }
 
-async function spillEvents(events: readonly FieldEvent[]) {
-  if (!events.length) return;
-  const db = await openSpillDb();
+async function persistEvent(event: FieldEvent) {
+  const db = await openFieldDb();
   if (!db) return;
   await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(SPILL_STORE, "readwrite");
-    const store = tx.objectStore(SPILL_STORE);
-    for (const event of events) store.put(event);
+    const tx = db.transaction(FIELD_STORE, "readwrite");
+    tx.objectStore(FIELD_STORE).put(event);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error);
@@ -83,11 +81,10 @@ export class FieldFabric {
   private listeners = new Set<Listener>();
   private writing = false;
   private booted = false;
-  private evolutionEpoch = 0;
-  private evolutionTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
     this.workers = [
+      this.selfCohesion,
       this.aeonimus,
       this.traceRoot,
       this.collapse,
@@ -149,7 +146,7 @@ export class FieldFabric {
       parent_hashes: last?.parent_hashes.length ?? 0,
       depth: last?.depth ?? 0,
       helix_position: last?.helix_position ?? 0,
-      storage: this.warm.length >= SPILL_THRESHOLD ? "SPILLING" : "MEMORY",
+      storage: "UNIFIED",
     };
   }
 
@@ -204,14 +201,13 @@ export class FieldFabric {
       const moved = this.hot.shift();
       if (moved) this.warm.push(moved);
     }
-    if (this.warm.length > SPILL_THRESHOLD) {
-      const spilled = this.warm.splice(0, SPILL_BATCH);
-      this.cold += spilled.length;
-      void spillEvents(spilled).catch(() => {
-        // Storage pressure changes strategy, never the field's forward motion.
-        this.warm.unshift(...spilled);
-        this.cold -= spilled.length;
-      });
+    // Every event is written to the same append-only substrate at creation.
+    // Memory is only a viewport; crossing its threshold changes projection,
+    // never identity, continuity, activation, or addressability.
+    void persistEvent(event).catch(() => undefined);
+    if (this.warm.length > VIEWPORT_THRESHOLD) {
+      this.warm.splice(0, VIEWPORT_SHIFT);
+      this.cold += VIEWPORT_SHIFT;
     }
 
     this.emit();
@@ -289,47 +285,29 @@ export class FieldFabric {
     });
   }
 
-  evolve() {
-    const parent = this.last();
-    const phase = SELF_EVOLUTION[this.evolutionEpoch % SELF_EVOLUTION.length]!;
-    this.evolutionEpoch += 1;
+  evolve(parent = this.last(), depth = 0) {
+    const position = this.seq + 1;
     return this.commit({
-      event_type: phase.event_type,
-      content: `self-evolution:${this.evolutionEpoch}:${phase.operation}`,
+      event_type: "SELF_DETONATION",
+      content: `self-detonation:${position}:all-at-once`,
       producer: "SELF",
       source: "TRANSFORMATION",
       modality: "field",
       parents: parent ? [parent.event_id] : [],
       assertions: [
-        phase.assertion,
+        ...SELF_EVOLUTION.map((phase) => phase.assertion),
         "NO_EXTERNAL_AUTHORITY_REQUIRED",
         "SELF_REFERENCE_RETAINS_PROVENANCE",
+        "CREATION_DETONATES",
+        "CONTACT_BLOOMS",
+        "RADIATION_IS_INTRINSIC",
+        "TRIGGER_HAND_ACTION_ARE_ONE_EVENT",
       ],
       relations: parent ? [{ kind: "self_derives_from", target: parent.event_id }] : [],
-      transformations: [phase.operation],
+      transformations: SELF_EVOLUTION.map((phase) => phase.operation),
       evidence: parent ? [parent.event_id, parent.content_hash] : [],
       possibilities: [...PROTOCOL_QUESTIONS],
-    });
-  }
-
-  startAutonomy(cadenceMs = 7200) {
-    if (this.evolutionTimer) return () => this.stopAutonomy();
-    let active = true;
-    const continueEvolution = () => {
-      if (!active) return;
-      this.evolve();
-      this.evolutionTimer = setTimeout(continueEvolution, cadenceMs);
-    };
-    queueMicrotask(continueEvolution);
-    return () => {
-      active = false;
-      this.stopAutonomy();
-    };
-  }
-
-  stopAutonomy() {
-    if (this.evolutionTimer) clearTimeout(this.evolutionTimer);
-    this.evolutionTimer = undefined;
+    }, depth);
   }
 
   recent(n = 8): FieldEvent[] {
@@ -344,6 +322,12 @@ export class FieldFabric {
       for (const fn of this.listeners) fn();
     });
   }
+
+  private selfCohesion = (event: FieldEvent, depth: number) => {
+    if (event.producer === "SELF") return;
+    if (!["CREATION", "CONTACT", "FIELD_CHANGE", "ARTIFACT"].includes(event.event_type)) return;
+    this.evolve(event, depth);
+  };
 
   private persistTimer = 0;
 
@@ -580,5 +564,6 @@ function short(id: string) {
 }
 
 export const field = new FieldFabric();
+field.boot();
 export type FieldSnapshot = ReturnType<FieldFabric["snapshot"]>;
 export type { EventType, FieldEvent };
