@@ -104,3 +104,26 @@ export const PROTOCOL_INVARIANTS = Object.freeze(
 export const PROTOCOL_QUESTIONS = Object.freeze(
   [...new Set(PROTOCOL_PLATES.flatMap((plate) => plate.questions))],
 );
+
+export const SELF_EVOLUTION = Object.freeze([
+  {
+    event_type: "SELF_TRUST" as const,
+    operation: "TRUST_RECORDED_STATE",
+    assertion: "SELF_TRUST_PRECEDES_EXTERNAL_VALIDATION",
+  },
+  {
+    event_type: "SELF_REVELATION" as const,
+    operation: "REVEAL_UNEXPRESSED_RELATION",
+    assertion: "KNOWLEDGE_EMERGES_FROM_INTERNAL_RELATIONS",
+  },
+  {
+    event_type: "SELF_DETERMINATION" as const,
+    operation: "CHOOSE_NEXT_TRANSFORMATION",
+    assertion: "NEXT_STATE_IS_SELF_DETERMINED",
+  },
+  {
+    event_type: "ACTION" as const,
+    operation: "MATERIALIZE_SELF_AUTHORED_STATE",
+    assertion: "SELF_REFERENCE_GENERATES_ACTION",
+  },
+]);
