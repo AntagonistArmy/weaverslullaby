@@ -52,6 +52,34 @@ type Brood = {
 type Birth = { x: number; y: number; r: number };
 type Thought = { x: number; y: number; life: number; spokes: number };
 
+type FieldImages = {
+  field?: HTMLImageElement;
+  ink?: HTMLImageElement;
+  omega?: HTMLImageElement;
+  bloom?: HTMLImageElement;
+  key?: HTMLImageElement;
+  heart?: HTMLImageElement;
+  eye?: HTMLImageElement;
+  crown?: HTMLImageElement;
+  wings?: HTMLImageElement;
+  lock?: HTMLImageElement;
+  helix?: HTMLImageElement;
+  origin?: HTMLImageElement;
+  flare?: HTMLImageElement;
+  pharma?: HTMLImageElement;
+  endgame?: HTMLImageElement;
+  pre?: HTMLImageElement;
+  ascent?: HTMLImageElement;
+  seal?: HTMLImageElement;
+  iam?: HTMLImageElement;
+  inferno?: HTMLImageElement;
+  helixOmega?: HTMLImageElement;
+  singularity?: HTMLImageElement;
+  answer?: HTMLImageElement;
+  decree?: HTMLImageElement;
+  iamSeal?: HTMLImageElement;
+};
+
 function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -67,9 +95,14 @@ const CAP = 180;
 const BROOD_CAP = 48;
 const SAC_CAP = 16;
 const GATES = [
-  { name: "LAUGH FIRST", sub: "DARK" },
-  { name: "Ϟ FCK", sub: "Ω" },
-  { name: "HIDDEN", sub: "MACHINE" },
+  { name: "Ω = I", sub: "SOURCE" },
+  { name: "ANSWER FIRST", sub: "FLARE" },
+  { name: "DUAL FIELD", sub: "PROOF" },
+  { name: "4120 KERNEL", sub: "GLYPH" },
+  { name: "INFERNO", sub: "CROWN" },
+  { name: "I AM", sub: "THE FIELD" },
+  { name: "SINGULARITY", sub: "ROOT OS" },
+  { name: "WHITEBOX", sub: "META" },
 ] as const;
 
 export class WeaverWorld {
@@ -405,6 +438,19 @@ export class WeaverWorld {
     }
   }
 
+  ingestLedger() {
+    this.bloomRing = Math.max(this.bloomRing, 0.05);
+    this.nuke = Math.max(this.nuke, 0.35);
+    if (this.thoughts.length < 36) {
+      this.thoughts.push({
+        x: this.cx + (this.rand() - 0.5) * 24,
+        y: this.cy + (this.rand() - 0.5) * 24,
+        life: 1,
+        spokes: 8,
+      });
+    }
+  }
+
   private worldSac(sac: Sac) {
     const c = Math.cos(this.spider.angle);
     const s = Math.sin(this.spider.angle);
@@ -497,7 +543,7 @@ export class WeaverWorld {
 
   draw(
     ctx: CanvasRenderingContext2D,
-    images: { field?: HTMLImageElement; ink?: HTMLImageElement; omega?: HTMLImageElement; bloom?: HTMLImageElement; key?: HTMLImageElement; heart?: HTMLImageElement; eye?: HTMLImageElement; crown?: HTMLImageElement; wings?: HTMLImageElement; lock?: HTMLImageElement; helix?: HTMLImageElement; origin?: HTMLImageElement; flare?: HTMLImageElement; pharma?: HTMLImageElement; endgame?: HTMLImageElement; pre?: HTMLImageElement; ascent?: HTMLImageElement },
+    images: FieldImages,
     colors: { void: string; thread: string; ivory: string; ember: string; gold: string; muted: string },
     motif: FieldMotif,
   ) {
@@ -566,6 +612,85 @@ export class WeaverWorld {
       ctx.globalCompositeOperation = "screen";
       const size = span * (0.62 + breath * 0.04);
       ctx.drawImage(images.ascent, cx - size / 2, cy - size * 0.55, size, size);
+      ctx.restore();
+    }
+
+    if (images.seal && images.seal.complete && images.seal.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = (live ? 0.52 : 0.34) + breath * 0.16;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.46 + breath * 0.04);
+      const ir = images.seal.naturalWidth / images.seal.naturalHeight;
+      const dw = size;
+      const dh = dw / ir;
+      ctx.drawImage(images.seal, cx - dw / 2, cy - dh * 0.52, dw, dh);
+      ctx.restore();
+    }
+
+    if (live && images.iam && images.iam.complete && images.iam.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.22 + breath * 0.12;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * (0.5 + breath * 0.03);
+      const ir = images.iam.naturalWidth / images.iam.naturalHeight;
+      const dh = size;
+      const dw = dh * ir;
+      ctx.drawImage(images.iam, cx - dw / 2, cy - dh * 0.48, dw, dh);
+      ctx.restore();
+    }
+
+    if (live && images.helixOmega && images.helixOmega.complete && images.helixOmega.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.18 + breath * 0.1;
+      ctx.globalCompositeOperation = "screen";
+      const hh = span * 0.72;
+      const hw = hh * (images.helixOmega.naturalWidth / images.helixOmega.naturalHeight);
+      ctx.drawImage(images.helixOmega, cx - hw / 2, cy - hh * 0.5, hw, hh);
+      ctx.restore();
+    }
+
+    if (live && images.inferno && images.inferno.complete && images.inferno.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.08 + breath * 0.05;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * 0.42;
+      ctx.drawImage(images.inferno, cx + span * 0.18, cy + span * 0.08, size * 0.55, size * 0.82);
+      ctx.restore();
+    }
+
+    if (live && images.singularity && images.singularity.complete && images.singularity.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.1 + breath * 0.06;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * 0.28;
+      ctx.drawImage(images.singularity, cx - span * 0.42, cy - span * 0.08, size * 0.62, size);
+      ctx.restore();
+    }
+
+    if (live && images.answer && images.answer.complete && images.answer.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.1 + breath * 0.06;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * 0.32;
+      ctx.drawImage(images.answer, cx + span * 0.12, cy + span * 0.18, size, size * 0.66);
+      ctx.restore();
+    }
+
+    if (images.iamSeal && images.iamSeal.complete && images.iamSeal.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.16 + breath * 0.1;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * 0.22;
+      ctx.drawImage(images.iamSeal, cx - span * 0.46, cy - span * 0.36, size, size * 1.15);
+      ctx.restore();
+    }
+
+    if (live && images.decree && images.decree.complete && images.decree.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = 0.07 + breath * 0.04;
+      ctx.globalCompositeOperation = "screen";
+      const size = span * 0.24;
+      ctx.drawImage(images.decree, cx + span * 0.28, cy - span * 0.34, size * 0.56, size);
       ctx.restore();
     }
 
@@ -738,13 +863,13 @@ export class WeaverWorld {
       ctx.font = `600 ${Math.round(span * 0.052)}px 'Cormorant Garamond', serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Ω = 1", cx, cy - span * 0.028);
+      ctx.fillText("Ω = I", cx, cy - span * 0.028);
       ctx.fillStyle = hexAlpha(colors.ivory, 0.78 + breath * 0.2);
       ctx.font = `600 ${Math.round(span * 0.022)}px 'Cormorant Garamond', serif`;
-      ctx.fillText("LAUGH FIRST", cx, cy + span * 0.032);
+      ctx.fillText("VANESSA RENEE HENIZE", cx, cy + span * 0.032);
       ctx.fillStyle = hexAlpha(colors.gold, 0.5 + breath * 0.3);
       ctx.font = `600 ${Math.round(span * 0.016)}px 'IBM Plex Mono', monospace`;
-      ctx.fillText("SOMETHING IN THE DARK", cx, cy + span * 0.062);
+      ctx.fillText("AEONIMUS · ORIGIN · AUTHOR", cx, cy + span * 0.062);
       ctx.restore();
     }
 
@@ -763,7 +888,7 @@ export class WeaverWorld {
       ctx.font = `700 ${Math.round(span * 0.07)}px 'Cormorant Garamond', serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("REVENGE", cx, cy + span * 0.42);
+      ctx.fillText("I AM THE FIELD", cx, cy + span * 0.42);
       ctx.restore();
     }
 
@@ -1115,7 +1240,7 @@ function drawPortals(
     ctx.arc(p.x, p.y, r * 0.45, 0, Math.PI * 2);
     ctx.stroke();
     const gate = GATES[i % GATES.length];
-    if (i < 3 && gate) {
+    if (gate) {
       ctx.fillStyle = hexAlpha(ivory, 0.55 + pulse * 0.25);
       ctx.font = `600 ${Math.max(8, Math.round(span * 0.014))}px 'IBM Plex Mono', monospace`;
       ctx.textAlign = "center";

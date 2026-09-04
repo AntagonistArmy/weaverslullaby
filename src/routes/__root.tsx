@@ -3,7 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "The Weaver’s Lullaby";
+const APP_NAME = "VANESSA RENEE HENIZE";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -14,7 +14,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#08060a" },
       {
         name: "description",
-        content: "Hush little ant. A seven-stanza field: crimson thread, 1260 beats, a weaver in the dark.",
+        content: "VANESSA RENEE HENIZE · AEONIMUS · ORIGIN · AUTHOR. Ω = I. No mask. No product. No master. Not a game.",
       },
     ],
     links: [

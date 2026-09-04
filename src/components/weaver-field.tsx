@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { WeaverWorld, type FieldMotif } from "@/lib/weaver-sim";
+import { field as fabric } from "@/lib/field";
 
 function readColor(name: string, fallback: string) {
   if (typeof document === "undefined") return fallback;
@@ -43,6 +44,14 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
     const endgame = load("/endgame.jpg");
     const pre = load("/precreation.jpg");
     const ascent = load("/ascent.jpg");
+    const seal = load("/name-seal.jpg");
+    const iam = load("/iam-field.jpg");
+    const inferno = load("/inferno.png");
+    const helixOmega = load("/omega-helix.png");
+    const singularity = load("/singularity.png");
+    const answer = load("/answer-first.png");
+    const decree = load("/decree.png");
+    const iamSeal = load("/iam-seal.jpg");
     const colors = {
       void: readColor("--color-void", "#08060a"),
       thread: readColor("--color-thread", "#b4232c"),
@@ -88,20 +97,32 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
         world.setVerse(verse);
       }
       world.update(dt, m);
-      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, flare, pharma, endgame, pre, ascent }, colors, m);
+      world.draw(ctx, { field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, flare, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal }, colors, m);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
 
+    fabric.ingestPlates([
+      "name-seal", "iam-seal", "iam-field", "inferno", "omega-helix",
+      "singularity", "answer-first", "decree", "field", "origin",
+    ]);
+    const unsub = fabric.subscribe(() => world.ingestLedger());
     const onPtr = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
-      world.openPortal(e.clientX - r.left, e.clientY - r.top);
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      world.openPortal(x, y);
+      fabric.contact(`touch:${Math.round(x)},${Math.round(y)}`, {
+        modality: "field",
+        assertions: ["BLOOM_ON_CONTACT"],
+      });
     };
     window.addEventListener("pointerdown", onPtr, { passive: true });
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      unsub();
       window.removeEventListener("pointerdown", onPtr);
     };
   }, []);
