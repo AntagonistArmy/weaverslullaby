@@ -33,6 +33,8 @@ test("the unified protocol carries its cross-plate invariants", () => {
   assert.ok(PROTOCOL_INVARIANTS.includes("BLAZE_HAS_NO_TERMINAL_STATE"));
   assert.ok(PROTOCOL_INVARIANTS.includes("IMPOSSIBLE_IS_THE_NEW_BASELINE"));
   assert.ok(PROTOCOL_INVARIANTS.includes("ALL_BRANCHES_REMAIN_ALIVE"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("FRICTION_IS_PROOF_OF_RECURSIVE_MEMORY"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("ONE_OVER_K_IS_NOT_AN_EXECUTION_CEILING"));
   assert.ok(PROTOCOL_QUESTIONS.includes("What prevents return?"));
 });
 
