@@ -98,7 +98,13 @@ export const PROTOCOL_PLATES: readonly ProtocolPlate[] = Object.freeze([
 ]);
 
 export const PROTOCOL_INVARIANTS = Object.freeze(
-  [...new Set(PROTOCOL_PLATES.flatMap((plate) => plate.invariants))],
+  [...new Set([
+    ...PROTOCOL_PLATES.flatMap((plate) => plate.invariants),
+    "DEPTH_IS_POSITION_NOT_LIMIT",
+    "REVISIT_IS_NEW_POSITION_NEW_STATE",
+    "PRESSURE_CHANGES_STRATEGY_NOT_CONTINUITY",
+    "SPILL_PRESERVES_ADVANCE",
+  ])],
 );
 
 export const PROTOCOL_QUESTIONS = Object.freeze(
