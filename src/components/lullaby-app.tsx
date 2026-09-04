@@ -107,14 +107,11 @@ export function LullabyApp() {
   }, [pulseBloom]);
 
   useEffect(() => {
-    field.boot();
     field.ingestProtocol();
     setLedger(field.snapshot());
     const unsub = field.subscribe(() => setLedger(field.snapshot()));
-    const stopAutonomy = field.startAutonomy();
     return () => {
       unsub();
-      stopAutonomy();
     };
   }, []);
 
