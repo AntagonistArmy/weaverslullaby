@@ -62,7 +62,7 @@
   animation: verse-rise var(--motion-emphasis) var(--ease-out) both;
 }
 
-.bloom-burst {
+.impact-bloom {
   pointer-events: none;
   position: absolute;
   inset: 0;
@@ -133,7 +133,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .verse-enter > *,
-  .bloom-burst,
+  .impact-bloom,
   .room-bloom,
   .breath {
     animation: none;
