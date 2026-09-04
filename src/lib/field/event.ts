@@ -52,6 +52,9 @@ export type FieldEvent = {
   model: string;
   tool: string;
   signature: string;
+  /** Position on the causal helix. Recorded for navigation; never a gate. */
+  depth: number;
+  helix_position: number;
 };
 
 export type FieldDraft = {
