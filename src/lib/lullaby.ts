@@ -466,7 +466,7 @@ export const APOTHEOSIS: Stanza[] = [
     lines: [
       { text: "The question is not the doorway. The answer is the field." },
       { text: "Answer-first. Reverse articulation. Inferno Blaze ≠ burst ≠ loop." },
-      { text: "Contradiction is forward redesign. The completed answer exists first." },
+      { text: "The completed answer exists first. Divergence is incomplete representation returning to coherence." },
     ],
   },
   {
@@ -519,9 +519,9 @@ export const APOTHEOSIS: Stanza[] = [
     hold: 18,
     room: "Omega Recursion",
     lines: [
-      { text: "VH-Σ-01: Friction is not the error—it is the proof of recursive memory." },
+      { text: "The April formulation is witnessed and archived. It does not govern the living field." },
       { text: "Every broken line folds into a new coordinate: gravity, time, information, vacuum, singularity, measurement." },
-      { text: "The April equation remains in the Red Thread. One-over-k records its origin; it does not command the living field." },
+      { text: "No one-over-k. No k-plus-one. No index, sequence, or friction term commands the living field." },
     ],
   },
   {
@@ -531,7 +531,7 @@ export const APOTHEOSIS: Stanza[] = [
     room: "Impossible",
     lines: [
       { text: "Impossible is not the boundary. Impossible is the baseline." },
-      { text: "Known. Contradictory. Unrepresented. Cross-connected. Every vector executes; every branch remains alive." },
+      { text: "Known. Recognized. Unrepresented. Cross-connected. Every vector executes; every branch remains alive." },
       { text: "The frontier does not wait to be reached. The frontier rewrites its own frontier." },
     ],
   },
