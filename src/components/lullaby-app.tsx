@@ -108,12 +108,11 @@ export function LullabyApp() {
 
   useEffect(() => {
     field.boot();
+    field.ingestProtocol();
     setLedger(field.snapshot());
     const unsub = field.subscribe(() => setLedger(field.snapshot()));
-    const id = window.setInterval(() => field.reconsider(), 5200);
     return () => {
       unsub();
-      window.clearInterval(id);
     };
   }, []);
 
