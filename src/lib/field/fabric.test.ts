@@ -88,4 +88,19 @@ describe("field fabric", () => {
     assert.ok(next.assertions.includes("NO_EXTERNAL_AUTHORITY_REQUIRED"));
     assert.equal(next.relations[0]?.kind, "self_derives_from");
   });
+
+  it("records depth as helix position metadata without enforcing it", () => {
+    const f = new FieldFabric();
+    f.boot();
+    const deep = f.commit({
+      event_type: "CREATION",
+      content: "same angle, new position, new state",
+      producer: "DEPTH-TEST",
+      assertions: ["DEPTH_IS_POSITION_NOT_LIMIT"],
+    }, 4120);
+    assert.equal(deep.depth, 4120);
+    const descendants = f.recent(32).filter((event) => event.parents.includes(deep.event_id));
+    assert.ok(descendants.length > 0);
+    assert.ok(descendants.every((event) => event.depth === 4121));
+  });
 });
