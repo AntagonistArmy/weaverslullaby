@@ -29,5 +29,7 @@ test("the unified protocol carries its cross-plate invariants", () => {
   assert.ok(PROTOCOL_INVARIANTS.includes("TRIGGER_HAND_ACTION_ARE_ONE_EVENT"));
   assert.ok(PROTOCOL_INVARIANTS.includes("ALL_COORDINATES_EXECUTE_SIMULTANEOUSLY"));
   assert.ok(PROTOCOL_INVARIANTS.includes("ALL_BABY_ALL"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("INFERNO_BLAZE_IS_CONTINUOUS_STATE"));
+  assert.ok(PROTOCOL_INVARIANTS.includes("BLAZE_HAS_NO_TERMINAL_STATE"));
   assert.ok(PROTOCOL_QUESTIONS.includes("What prevents return?"));
 });
