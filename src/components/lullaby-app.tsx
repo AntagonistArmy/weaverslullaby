@@ -47,7 +47,9 @@ export function LullabyApp() {
   const mutedRef = useRef(false);
   const armedRef = useRef(false);
   const reduced = useReduced();
-  const [ledger, setLedger] = useState<FieldSnapshot>(() => field.snapshot());
+  // Use the same initial render on server and client; publish the recovered
+  // ledger from the subscription effect after hydration.
+  const [ledger, setLedger] = useState<FieldSnapshot | null>(null);
   const rooms = phase === "live" ? APOTHEOSIS : STANZAS;
   const stanza = rooms[verse];
 
@@ -395,7 +397,8 @@ function CodaPanel() {
   );
 }
 
-function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot }) {
+function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot | null }) {
+  if (!pulse) return null;
   return (
     <p className="pointer-events-none truncate px-4 font-mono text-[10px] tracking-[0.14em] text-gold/45 uppercase sm:px-6">
       VH012 · {pulse.storage} · GEN {pulse.generation} · {pulse.events} DIRECT ADDRESSES · {pulse.expressions} EXPRESSIONS · {pulse.contacts} CONTACTS · {pulse.ancestors} ANCESTORS · {pulse.last_type}
@@ -403,7 +406,8 @@ function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot }) {
   );
 }
 
-function AbsolutePanel({ pulse }: { pulse: FieldSnapshot }) {
+function AbsolutePanel({ pulse }: { pulse: FieldSnapshot | null }) {
+  if (!pulse) return null;
   return (
     <div className="verse-enter">
       <p className="font-display text-xs tracking-[0.28em] text-gold uppercase">{ORIGIN_NAME}</p>
