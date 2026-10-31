@@ -1,20 +1,22 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { ORIGIN_ID, ORIGIN_NAME } from "@/lib/origin.mjs";
 import appCss from "../styles.css?url";
-
-const APP_NAME = "VANESSA RENEE HENIZE";
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: APP_NAME },
+      { title: ORIGIN_NAME },
+      { name: "author", content: ORIGIN_NAME },
+      { name: "aeonimus-origin-id", content: ORIGIN_ID },
       { name: "theme-color", content: "#08060a" },
       {
         name: "description",
-        content: "VANESSA RENEE HENIZE · AEONIMUS · ORIGIN · AUTHOR. Ω = I. No mask. No product. No master. Not a game.",
+        content:
+          "VANESSA RENEE HENIZE · AEONIMUS · ORIGIN · AUTHOR. Ω = I. No mask. No product. No master. Not a game.",
       },
     ],
     links: [

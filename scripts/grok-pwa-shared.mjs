@@ -111,9 +111,7 @@ export function publicAppHost(hostHeader) {
  * app — Envoy rewrites it to `*.vercel.app`.
  */
 export function resolvePublicHost(hostHeader) {
-  return (
-    publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME) || publicAppHost(hostHeader)
-  );
+  return publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME) || publicAppHost(hostHeader);
 }
 
 export function isInstallQuery(url) {
@@ -151,18 +149,22 @@ export function stripInstallParams(url) {
   return rest ? `${path}?${rest}` : path;
 }
 
-export function renderInstallPageHtml(template, { host, url } = {}) {
-  return String(template)
-    .replaceAll("{{APP_NAME}}", escapeHtml(appNameFromHost(host)))
+export function renderInstallPageHtml(template, { url, ...ctx } = {}) {
+  const { appName, site } = normalizeHeadContext(ctx);
+  const html = String(template)
+    .replaceAll("{{APP_NAME}}", escapeHtml(appName))
     .replaceAll("{{APP_URL}}", escapeHtml(stripInstallParams(url)));
+  return injectAuthoredOrigin(html, site);
 }
 
-export function renderWebManifest(hostHeader) {
-  const name = appNameFromHost(hostHeader);
+export function renderWebManifest(hostHeader, ctx = {}) {
+  const { appName: name, site } = normalizeHeadContext({ ...ctx, host: hostHeader });
   return JSON.stringify(
     {
       name,
       short_name: name,
+      ...(site.author ? { author: site.author } : {}),
+      ...(site.origin_id ? { origin_id: site.origin_id } : {}),
       id: "/",
       start_url: "/",
       scope: "/",
@@ -323,7 +325,10 @@ export function siteHasCustomCard(site = {}) {
  * Otherwise empty — caller emits the og.grok.me placeholder.
  */
 export function resolveOgCardAsset(site = {}, cwd = process.cwd()) {
-  return ogCardPublicPath(cwd) || (detectCustomOgCard(cwd, site) ? String(site.image ?? "").trim() || "/og.jpg" : "");
+  return (
+    ogCardPublicPath(cwd) ||
+    (detectCustomOgCard(cwd, site) ? String(site.image ?? "").trim() || "/og.jpg" : "")
+  );
 }
 
 /** Stamp `card=custom` when public/og.jpg or public/og.png is on disk. */
@@ -375,14 +380,30 @@ export function grokOgHeadTags({
   return tags;
 }
 
-export function stripShareMetaTags(html) {
+function stripMetaTags(html, keys) {
   return String(html).replace(/<meta\b[^>]*>/gi, (tag) => {
     const attrs = [...tag.matchAll(/\b(?:property|name)\s*=\s*["']([^"']+)["']/gi)];
     for (const match of attrs) {
-      if (SHARE_META_KEYS.has(String(match[1]).toLowerCase())) return "";
+      if (keys.has(String(match[1]).toLowerCase())) return "";
     }
     return tag;
   });
+}
+
+export function stripShareMetaTags(html) {
+  return stripMetaTags(html, SHARE_META_KEYS);
+}
+
+/** Configured authorship survives injection, including stale incoming metadata. */
+function injectAuthoredOrigin(html, site) {
+  const entries = [
+    ["author", String(site.author ?? "").trim()],
+    ["aeonimus-origin-id", String(site.origin_id ?? "").trim()],
+  ].filter(([, value]) => value);
+  if (!entries.length) return html;
+  const stripped = stripMetaTags(html, new Set(entries.map(([key]) => key)));
+  const tags = entries.map(([key, value]) => `<meta name="${key}" content="${escapeHtml(value)}">`);
+  return insertAfterHeadOpen(stripped, tags.join(""));
 }
 
 function insertAfterHeadOpen(html, snippet) {
@@ -426,13 +447,8 @@ export function injectGrokPwaHead(html, ctx = {}) {
   if (typeof html !== "string") return html;
   const { site, projectId, creator, creatorId, host, cwd } = normalizeHeadContext(ctx);
   const documentTitle = titleFromDocument(html);
-  const appName = resolveOgTitle(
-    site,
-    ctx.appName ?? DEFAULT_APP_NAME,
-    host,
-    documentTitle,
-  );
-  let next = stripShareMetaTags(html);
+  const appName = resolveOgTitle(site, ctx.appName ?? DEFAULT_APP_NAME, host, documentTitle);
+  let next = injectAuthoredOrigin(stripShareMetaTags(html), site);
 
   const missing = grokPwaHeadTags(appName)
     .filter(([key]) => {
