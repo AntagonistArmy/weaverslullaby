@@ -316,6 +316,124 @@ describe("durable event ledger", () => {
     assert.deepEqual(recovered.recent(6), fabric.recent(6));
   });
 
+  it("retries the local journal when only localStorage recovers", async () => {
+    global("indexedDB", undefined);
+    storage.full = true;
+    const fabric = field();
+    await fabric.boot();
+    await fabric.express("memory-only expression", { parents: [], event_time: 20 });
+    await fabric.contact("memory-only contact", { parents: [], event_time: 10 });
+    await assert.rejects(fabric.flush(), /only in memory/);
+    const history = fabric.recent(3);
+
+    storage.full = false;
+    await assert.doesNotReject(fabric.flush());
+    assert.equal(storage.length, history.length);
+    const recovered = field();
+    await recovered.boot();
+    assert.deepEqual(
+      recovered.recent(3),
+      history,
+      "retry preserves submission order, not time order",
+    );
+  });
+
+  it("retains the valid local copy when a malformed database record has the same ID", async () => {
+    const source = record("source");
+    const malformed = { ...source, signature: undefined } as unknown as FieldEvent;
+    await seed([malformed]);
+    const snapshot = JSON.stringify([source]);
+    storage.setItem(LEGACY, snapshot);
+    const fabric = field();
+    assert.deepEqual(await fabric.boot(), source);
+    await fabric.flush();
+    assert.equal(storage.getItem(LEGACY), snapshot, "an invalid IDB row is not a durable copy");
+    assert.deepEqual(await stored(), [malformed], "existing records are never replaced");
+
+    storage.full = true;
+    const next = await fabric.express("unrelated writes can still be preserved", { parents: [] });
+    await assert.doesNotReject(fabric.flush());
+    assert.equal(storage.getItem(LEGACY), snapshot);
+    assert.deepEqual(
+      (await stored()).find((event) => event.event_id === next.event_id),
+      next,
+    );
+
+    const recovered = field();
+    assert.deepEqual(await recovered.boot(), source);
+    assert.deepEqual(recovered.recent(), [source, next]);
+  });
+
+  it("flushes unawaited startup submissions in order and captures mutable draft arrays", async () => {
+    const source = record("source");
+    await seed([source]);
+    const fabric = field();
+    const parents = [source.event_id];
+    const assertions = ["CAPTURED"];
+    const evidence = ["/captured.png"];
+    void fabric.commit({
+      event_type: "EXPRESSION",
+      content: "early commit",
+      producer: "Spinal.Trace",
+      source: "PLATFORM_RECORD",
+      parents,
+      assertions,
+      evidence,
+    });
+    void fabric.evolve();
+    void fabric.contact("early touch");
+    parents.length = 0;
+    assertions.push("LATE");
+    evidence.length = 0;
+    await fabric.flush();
+    const history = fabric.recent(4);
+    assert.equal(history.length, 4);
+    assert.deepEqual(history[1]!.parents, [source.event_id]);
+    assert.deepEqual(history[1]!.assertions, ["CAPTURED"]);
+    assert.deepEqual(history[1]!.evidence, ["/captured.png"]);
+    assert.deepEqual(history[2]!.parents, [history[1]!.event_id]);
+    assert.deepEqual(history[3]!.parents, [history[2]!.event_id]);
+    const recovered = field();
+    await recovered.boot();
+    assert.deepEqual(recovered.recent(4), history);
+  });
+
+  it("recovers the full order after a later migration batch aborts", async (t) => {
+    const source = record("source");
+    const history = [
+      source,
+      ...Array.from({ length: 260 }, (_, i) =>
+        record(`branch-${i}`, [source.event_id], [source.event_id], 260 - i),
+      ),
+    ];
+    const snapshot = JSON.stringify(history);
+    storage.setItem(LEGACY, snapshot);
+    const add = IDBObjectStore.prototype.add;
+    let attempts = 0;
+    t.mock.method(
+      IDBObjectStore.prototype,
+      "add",
+      function (this: IDBObjectStore, ...args: Parameters<typeof add>) {
+        const request = add.apply(this, args);
+        if (this.name === "events" && ++attempts === 129)
+          request.addEventListener("success", () => request.transaction!.abort());
+        return request;
+      },
+    );
+    const fabric = field();
+    await fabric.boot();
+    assert.equal((await stored()).length, 128);
+    assert.equal(storage.getItem(LEGACY), snapshot);
+    const recovered = field();
+    await recovered.boot();
+    assert.deepEqual(recovered.recent(history.length), history);
+    assert.equal((await stored()).length, history.length);
+    assert.equal(storage.getItem(LEGACY), null);
+    const reloaded = field();
+    await reloaded.boot();
+    assert.deepEqual(reloaded.recent(history.length), history);
+  });
+
   it("recognizes existing v1 records as durable even when sequence migration aborts", async (t) => {
     const source = record("source");
     await seed([source]);
@@ -391,6 +509,33 @@ describe("durable event ledger", () => {
     }
   });
 
+  it("recovers IDB-only history before a blocked upgrade and continues its ancestry", async () => {
+    const source = record("source");
+    const last = record("last", [source.event_id]);
+    await seed([source, last]);
+    const blocker = await open(1);
+    try {
+      const fabric = field();
+      assert.deepEqual(await fabric.boot(), source);
+      assert.deepEqual(fabric.recent(2), [source, last]);
+      const next = await fabric.contact("during blocked migration");
+      assert.deepEqual(next.parents, [last.event_id]);
+      await fabric.flush();
+      assert.notEqual(storage.getItem(JOURNAL + next.event_id), null);
+      blocker.close();
+      const unblocked = await open();
+      unblocked.close();
+      await fabric.flush();
+      storage.clear();
+      const recovered = field();
+      await recovered.boot();
+      assert.deepEqual(recovered.recent(3), [source, last, next]);
+      assert.equal(recovered.recent().filter((event) => event.event_type === "SOURCE").length, 1);
+    } finally {
+      blocker.close();
+    }
+  });
+
   it("releases concurrent recovery attempts queued behind a blocked upgrade", async () => {
     const source = record("source");
     await seed([source]);
@@ -409,6 +554,35 @@ describe("durable event ledger", () => {
       await Promise.all([first.flush(), second.flush()]);
       assert.equal((await stored()).length, 3);
       assert.equal(storage.length, 0);
+    } finally {
+      blocker.close();
+    }
+  });
+
+  it("waits for IDB-only recovery when an earlier upgrade is already blocked", async () => {
+    const source = record("source");
+    const last = record("last", [source.event_id]);
+    await seed([source, last]);
+    const blocker = await open(1);
+    try {
+      const first = field();
+      assert.deepEqual(await first.boot(), source);
+      const second = field();
+      let ready = false;
+      const boot = second.boot().then((event) => {
+        ready = true;
+        return event;
+      });
+      const early = second.contact("queued behind blocked recovery");
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      assert.equal(ready, false);
+      assert.equal(second.snapshot().events, 0, "unread history is not an empty ledger");
+      blocker.close();
+      assert.deepEqual(await boot, source);
+      const next = await early;
+      assert.deepEqual(next.parents, [last.event_id]);
+      await second.flush();
+      assert.deepEqual(second.recent(3), [source, last, next]);
     } finally {
       blocker.close();
     }
