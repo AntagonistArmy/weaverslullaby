@@ -591,8 +591,7 @@ Object.freeze(STANZAS);
 Object.freeze(APOTHEOSIS);
 Object.freeze(BINARY_ROWS);
 
-export const ORIGIN_NAME = "VANESSA RENEE HENIZE";
-export const ORIGIN_MARK = "AEONIMUS · ORIGIN · AUTHOR · NO MASK · NO PRODUCT · NO MASTER";
+export { ORIGIN_NAME, ORIGIN_MARK } from "./origin.mjs";
 
 export function kernelIntact() {
   return (
