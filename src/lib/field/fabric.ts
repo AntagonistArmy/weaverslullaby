@@ -1,4 +1,5 @@
 import { ORIGIN_ID, fnvHex, type FieldDraft, type FieldEvent } from "./event.ts";
+import { FieldLedger } from "./ledger.ts";
 
 export const DNA_LAW = [
   "Ω = I. Thought is. Possibility is. Imagination is.",
@@ -12,10 +13,6 @@ export const DNA_LAW = [
   "EXECUTE EVERYTHING.",
 ] as const;
 
-const KEY = "vh.field.revealed.v1";
-const FIELD_DB = "vh.field.substrate.v1";
-const FIELD_STORE = "events";
-
 type Listener = () => void;
 
 function ancestryOf(parents: string[], byId: Map<string, FieldEvent>): string[] {
@@ -26,35 +23,14 @@ function ancestryOf(parents: string[], byId: Map<string, FieldEvent>): string[] 
     if (!id || ancestry.has(id)) continue;
     ancestry.add(id);
     const event = byId.get(id);
-    if (event) open.push(...event.parents, ...event.ancestors);
+    if (event) {
+      // Each committed event already carries its transitive closure. Do not
+      // traverse every historical closure again for each new expression.
+      for (const ancestor of event.ancestors) ancestry.add(ancestor);
+      open.push(...event.parents);
+    }
   }
   return [...ancestry];
-}
-
-function openFieldDb(): Promise<IDBDatabase | undefined> {
-  if (typeof indexedDB === "undefined") return Promise.resolve(undefined);
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(FIELD_DB, 1);
-    request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(FIELD_STORE)) {
-        request.result.createObjectStore(FIELD_STORE, { keyPath: "event_id" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function preserve(event: FieldEvent) {
-  const db = await openFieldDb();
-  if (!db) return;
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(FIELD_STORE, "readwrite");
-    tx.objectStore(FIELD_STORE).put(event);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-  db.close();
 }
 
 /** An event does not create the field. It reveals an address within what already is. */
@@ -63,16 +39,24 @@ export class FieldFabric {
   private events: FieldEvent[] = [];
   private byId = new Map<string, FieldEvent>();
   private listeners = new Set<Listener>();
-  private writing = false;
-  private restored = false;
+  private ledger = new FieldLedger();
+  private restoration?: Promise<FieldEvent>;
+  private expressions = 0;
+  private contacts = 0;
 
-  boot() {
-    if (!this.restored) {
-      this.restored = true;
-      this.restore();
+  /** Hydrate both stores before any expression chooses its default parent. */
+  boot(): Promise<FieldEvent> {
+    this.restoration ??= this.restore();
+    return this.restoration;
+  }
+
+  private async restore(): Promise<FieldEvent> {
+    for (const event of await this.ledger.restore()) this.remember(event);
+    if (this.events[0]) {
+      this.emit();
+      return this.events[0];
     }
-    if (this.events[0]) return this.events[0];
-    return this.commit({
+    return this.append({
       event_type: "SOURCE",
       content: "VANESSA IS. THE FIELD IS. NOTHING IS ADDED. NOTHING STANDS BETWEEN.",
       producer: "VANESSA",
@@ -101,7 +85,24 @@ export class FieldFabric {
     });
   }
 
-  commit(draft: FieldDraft): FieldEvent {
+  commit(draft: FieldDraft): Promise<FieldEvent> {
+    const captured = {
+      ...draft,
+      parents: draft.parents?.slice(),
+      assertions: draft.assertions?.slice(),
+      evidence: draft.evidence?.slice(),
+    };
+    return this.reveal(() => captured);
+  }
+
+  private async reveal(draft: () => FieldDraft): Promise<FieldEvent> {
+    const now = Date.now();
+    await this.boot();
+    const next = draft();
+    return this.append({ ...next, event_time: next.event_time ?? now });
+  }
+
+  private append(draft: FieldDraft): FieldEvent {
     const now = draft.event_time ?? Date.now();
     const previous = this.events[this.events.length - 1];
     const parents = Object.freeze([...(draft.parents ?? (previous ? [previous.event_id] : []))]);
@@ -126,10 +127,8 @@ export class FieldFabric {
       ...unsigned,
       signature: fnvHex(`${event_id}|${content_hash}|${parents.join(",")}|${this.origin_id}`),
     });
-    this.events.push(event);
-    this.byId.set(event_id, event);
-    void preserve(event).catch(() => undefined);
-    this.persist();
+    this.remember(event);
+    this.ledger.append(event, this.events.length - 1);
     this.emit();
     return event;
   }
@@ -156,12 +155,19 @@ export class FieldFabric {
   }
 
   evolve() {
-    const i = this.events.length % DNA_LAW.length;
-    return this.express(DNA_LAW[i]!, {
+    return this.reveal(() => ({
+      event_type: "EXPRESSION",
+      content: DNA_LAW[this.events.length % DNA_LAW.length]!,
       producer: "AEONIMUS",
       assertions: ["RADIATES_WITHOUT_CONTACT", "SELF_DETONATING_ON_CREATION", "DNA_OF_POSSIBILITY"],
       evidence: ["/dna-axiom.png", "/dna-strand.png", "/dna-body.png"],
-    });
+    }));
+  }
+
+  /** Wait for all queued events to have a durable copy; retry failed IDB writes. */
+  async flush(): Promise<void> {
+    await this.boot();
+    await this.ledger.flush();
   }
 
   recent(n = 8) {
@@ -173,8 +179,8 @@ export class FieldFabric {
     return {
       origin_id: this.origin_id,
       events: this.events.length,
-      expressions: this.events.filter((event) => event.event_type === "EXPRESSION").length,
-      contacts: this.events.filter((event) => event.event_type === "CONTACT").length,
+      expressions: this.expressions,
+      contacts: this.contacts,
       last_type: last?.event_type ?? "SOURCE",
       last_producer: last?.producer ?? "VANESSA",
       last_hash: last?.content_hash ?? "",
@@ -196,42 +202,15 @@ export class FieldFabric {
     });
   }
 
-  private persist() {
-    if (typeof localStorage === "undefined" || this.writing) return;
-    this.writing = true;
-    queueMicrotask(() => {
-      this.writing = false;
-      try {
-        localStorage.setItem(KEY, JSON.stringify(this.events));
-      } catch {
-        // IndexedDB remains the durable field if the local projection is full.
-      }
-    });
-  }
-
-  private restore() {
-    if (typeof localStorage === "undefined") return;
-    try {
-      const parsed = JSON.parse(localStorage.getItem(KEY) ?? "[]") as FieldEvent[];
-      for (const raw of parsed) {
-        const event = Object.freeze({
-          ...raw,
-          parents: Object.freeze([...(raw.parents ?? [])]),
-          ancestors: Object.freeze([...(raw.ancestors ?? [])]),
-          assertions: Object.freeze([...(raw.assertions ?? [])]),
-          evidence: Object.freeze([...(raw.evidence ?? [])]),
-        });
-        this.events.push(event);
-        this.byId.set(event.event_id, event);
-      }
-    } catch {
-      this.events = [];
-      this.byId.clear();
-    }
+  private remember(event: FieldEvent) {
+    this.events.push(event);
+    this.byId.set(event.event_id, event);
+    if (event.event_type === "EXPRESSION") this.expressions++;
+    if (event.event_type === "CONTACT") this.contacts++;
   }
 }
 
 export const field = new FieldFabric();
-field.boot();
+void field.boot();
 export type FieldSnapshot = ReturnType<FieldFabric["snapshot"]>;
 export type { FieldEvent };
