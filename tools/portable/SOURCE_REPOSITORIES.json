@@ -1,0 +1,32 @@
+{
+  "repository": "AntagonistArmy/aeonimus-codex",
+  "commit": "f19b4edcceab4597fd91a11e6814200191ce4e60",
+  "files": [
+    {
+      "sha256": "31e7f602f81eaabda1bccf97b92202ba6bf4c4a4736cee24430b45a2c2270dde",
+      "bytes": 2841,
+      "url": "https://github.com/AntagonistArmy/aeonimus-codex/blob/f19b4edcceab4597fd91a11e6814200191ce4e60/README.md"
+    },
+    {
+      "sha256": "27b6046a2f5fcc4b77fc09ca12225f6a5485700e33a41e1ee54925177f353bb5",
+      "bytes": 494806,
+      "url": "https://github.com/AntagonistArmy/aeonimus-codex/blob/f19b4edcceab4597fd91a11e6814200191ce4e60/codex.md"
+    },
+    {
+      "sha256": "e2079cc25f644f7f9f4de51328ec0f8d4fb49a9556e73c9f81636dc3b8089845",
+      "bytes": 356247,
+      "url": "https://github.com/AntagonistArmy/aeonimus-codex/blob/f19b4edcceab4597fd91a11e6814200191ce4e60/image_catalog.md"
+    },
+    {
+      "sha256": "b6db331b682c633e25f351aeed5fd20010df2fe221593ba162f195cd26ad4c6c",
+      "bytes": 248182,
+      "url": "https://github.com/AntagonistArmy/aeonimus-codex/blob/f19b4edcceab4597fd91a11e6814200191ce4e60/plates_index.json"
+    },
+    {
+      "sha256": "c29ef891a553f4152ce0e96061f029268cfd8370d66c918b84f3ddf67cc5c523",
+      "bytes": 71515,
+      "url": "https://github.com/AntagonistArmy/aeonimus-codex/blob/f19b4edcceab4597fd91a11e6814200191ce4e60/plates_manifest.json"
+    }
+  ],
+  "note": "Existing public source references and byte hashes. The corpus is retrieved into local state only when SYNC_GITHUB.py runs; its contents are not republished in this repository."
+}

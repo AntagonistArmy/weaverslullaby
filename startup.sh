@@ -1,13 +1,11 @@
 #!/bin/sh
 set -eu
-cd /workspace
+cd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 # :8081 is QA-only — a revive must never inherit a stale built-output preview.
 # Called directly, not via npm: no node_modules needed, so nothing to wait for.
 node scripts/preview.mjs stop || true
-# Replant GitHub spine if the sandbox stripped .git (does not block preview).
-if [ -x scripts/bind-github.sh ]; then
-  sh scripts/bind-github.sh >>/tmp/github-bind.log 2>&1 &
-fi
+# Repository synchronization is an explicit operation; startup preserves the
+# current checkout, index, branch and remote history.
 if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:8080/; then
   exit 0
 fi

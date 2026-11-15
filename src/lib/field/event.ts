@@ -1,4 +1,4 @@
-export const ORIGIN_ID = "VANESSA::AEONIMUS::VH012";
+export { ORIGIN_ID } from "../origin.mjs";
 
 export type EventType = "SOURCE" | "EXPRESSION" | "CONTACT";
 export type EpistemicKind = "USER_SOURCE" | "PLATFORM_RECORD";
