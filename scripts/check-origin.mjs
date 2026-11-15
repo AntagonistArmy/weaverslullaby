@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { isMainModule } from "./with-app-env.mjs";
 import { ORIGIN_ID, ORIGIN_NAME } from "../src/lib/origin.mjs";
 import { readOgSite } from "./grok-pwa-shared.mjs";
 
@@ -13,7 +14,7 @@ export function assertOriginIdentity(site) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMainModule(import.meta.url)) {
   const root = join(dirname(fileURLToPath(import.meta.url)), "..");
   assertOriginIdentity(readOgSite(root));
   console.log(`AEONIMUS origin verified: ${ORIGIN_NAME} · ${ORIGIN_ID}`);

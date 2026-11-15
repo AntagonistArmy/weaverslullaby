@@ -132,21 +132,18 @@ function wrapHtmlResponses(middlewares, cwd) {
     res.write = (chunk, encoding, cb) => {
       if (decideMode() === "passthrough") return originalWrite(chunk, encoding, cb);
       const done = typeof encoding === "function" ? encoding : cb;
-      if (chunk) {
-        for (const out of injector.push(toBuffer(chunk, encoding))) originalWrite(out);
-      }
-      if (typeof done === "function") done();
+      const chunks = chunk ? injector.push(toBuffer(chunk, encoding)) : [];
+      if (chunks.length) return originalWrite(Buffer.concat(chunks), done);
+      if (typeof done === "function") queueMicrotask(done);
       return true;
     };
 
     res.end = (chunk, encoding, cb) => {
       const done = typeof encoding === "function" ? encoding : cb;
       if (decideMode() === "passthrough") return originalEnd(chunk, encoding, cb);
-      if (chunk) {
-        for (const out of injector.push(toBuffer(chunk, encoding))) originalWrite(out);
-      }
-      for (const out of injector.flush()) originalWrite(out);
-      return originalEnd(undefined, undefined, done);
+      const chunks = chunk ? injector.push(toBuffer(chunk, encoding)) : [];
+      chunks.push(...injector.flush());
+      return originalEnd(chunks.length ? Buffer.concat(chunks) : undefined, undefined, done);
     };
 
     next();

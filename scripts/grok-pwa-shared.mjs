@@ -5,6 +5,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { createHeadScanner, headTags, replaceRanges, tagAttributes } from "./html-head.mjs";
 
 export const DEFAULT_APP_NAME = "Grok App";
 export const OG_SERVICE_URL_DEFAULT = "https://og.grok.me";
@@ -295,8 +296,13 @@ export function ogServiceUrl() {
 }
 
 export function titleFromDocument(html) {
-  const match = String(html ?? "").match(/<title\b[^>]*>([^<]*)<\/title>/i);
-  return match ? unescapeHtml(match[1]).trim() : "";
+  const text = String(html ?? "");
+  const tags = headTags(text);
+  const open = tags.findIndex((tag) => tag.name === "title" && !tag.closing);
+  const close = tags[open + 1];
+  return open >= 0 && close?.name === "title" && close.closing
+    ? unescapeHtml(text.slice(tags[open].end, close.start)).trim()
+    : "";
 }
 
 export function resolveOgTitle(
@@ -381,13 +387,17 @@ export function grokOgHeadTags({
 }
 
 function stripMetaTags(html, keys) {
-  return String(html).replace(/<meta\b[^>]*>/gi, (tag) => {
-    const attrs = [...tag.matchAll(/\b(?:property|name)\s*=\s*["']([^"']+)["']/gi)];
-    for (const match of attrs) {
-      if (keys.has(String(match[1]).toLowerCase())) return "";
-    }
-    return tag;
-  });
+  const text = String(html);
+  return replaceRanges(
+    text,
+    headTags(text).filter((tag) => {
+      if (tag.name !== "meta" || tag.closing) return false;
+      const attrs = tagAttributes(tag.source);
+      return [attrs.get("name"), attrs.get("property")].some(
+        (value) => value !== undefined && keys.has(value.toLowerCase()),
+      );
+    }),
+  );
 }
 
 export function stripShareMetaTags(html) {
@@ -407,18 +417,44 @@ function injectAuthoredOrigin(html, site) {
 }
 
 function insertAfterHeadOpen(html, snippet) {
-  if (/<head\b[^>]*>/i.test(html)) {
-    return html.replace(/<head\b[^>]*>/i, (open) => `${open}${snippet}`);
-  }
-  if (/<html\b[^>]*>/i.test(html)) {
-    return html.replace(/<html\b[^>]*>/i, (open) => `${open}<head>${snippet}</head>`);
-  }
+  const tags = headTags(html);
+  const head = tags.find((tag) => tag.name === "head" && !tag.closing);
+  if (head) return html.slice(0, head.end) + snippet + html.slice(head.end);
+  const root = tags.find((tag) => tag.name === "html" && !tag.closing);
+  if (root) return html.slice(0, root.end) + `<head>${snippet}</head>` + html.slice(root.end);
   return `<!doctype html><html><head>${snippet}</head>${html}`;
 }
 
 function insertBeforeHeadClose(html, snippet) {
-  if (/<\/head>/i.test(html)) return html.replace(/<\/head>/i, `${snippet}</head>`);
+  const close = headTags(html).find((tag) => tag.name === "head" && tag.closing);
+  if (close) return html.slice(0, close.start) + snippet + html.slice(close.start);
   return insertAfterHeadOpen(html, snippet);
+}
+
+function injectConfiguredTitle(html, site) {
+  const title = String(site.title ?? "").trim();
+  if (!title) return html;
+  const tags = headTags(html);
+  const ranges = [];
+  for (let i = 0; i < tags.length; i++) {
+    const tag = tags[i];
+    if (
+      tag.name === "title" &&
+      !tag.closing &&
+      tags[i + 1]?.name === "title" &&
+      tags[i + 1].closing
+    ) {
+      ranges.push({ start: tag.start, end: tags[++i].end });
+    }
+  }
+  const stripped = stripMetaTags(
+    replaceRanges(html, ranges),
+    new Set(["apple-mobile-web-app-title"]),
+  );
+  return insertAfterHeadOpen(
+    stripped,
+    `<title>${escapeHtml(title)}</title><meta name="apple-mobile-web-app-title" content="${escapeHtml(title)}">`,
+  );
 }
 
 export function normalizeHeadContext(ctx = {}) {
@@ -448,7 +484,7 @@ export function injectGrokPwaHead(html, ctx = {}) {
   const { site, projectId, creator, creatorId, host, cwd } = normalizeHeadContext(ctx);
   const documentTitle = titleFromDocument(html);
   const appName = resolveOgTitle(site, ctx.appName ?? DEFAULT_APP_NAME, host, documentTitle);
-  let next = injectAuthoredOrigin(stripShareMetaTags(html), site);
+  let next = injectConfiguredTitle(injectAuthoredOrigin(stripShareMetaTags(html), site), site);
 
   const missing = grokPwaHeadTags(appName)
     .filter(([key]) => {
@@ -488,11 +524,6 @@ export function injectGrokPwaHead(html, ctx = {}) {
   return insertBeforeHeadClose(next, missing.join(""));
 }
 
-function findHeadClose(buf) {
-  const at = buf.toString("latin1").search(/<\/head>/i);
-  return at;
-}
-
 /**
  * Streaming head injector: buffers only until `</head>` (ASCII marker; never
  * appears inside a UTF-8 continuation byte), overwrites share-card metas,
@@ -504,6 +535,14 @@ export function createHeadInjector(ctx = {}) {
   /** @type {Buffer[]} */
   let pending = [];
   let done = false;
+  let size = 0;
+  let boundary = -1;
+  const scanner = createHeadScanner((tag) => {
+    if (tag.name === "head" && tag.closing) {
+      boundary = tag.end;
+      return false;
+    }
+  });
 
   const apply = (html) =>
     injectGrokPwaHead(html, {
@@ -522,14 +561,24 @@ export function createHeadInjector(ctx = {}) {
       const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
       if (done) return [buf];
       pending.push(buf);
+      size += buf.length;
+      scanner.push(buf.toString("latin1"));
+      if (boundary > 1024 * 1024) {
+        pending = [];
+        throw new RangeError("HTML head exceeds the 1 MiB injection buffer");
+      }
+      if (boundary === -1) {
+        if (size > 1024 * 1024) {
+          pending = [];
+          throw new RangeError("HTML head exceeds the 1 MiB injection buffer");
+        }
+        return [];
+      }
       const joined = Buffer.concat(pending);
-      const at = findHeadClose(joined);
-      if (at === -1) return [];
       done = true;
       pending = [];
-      const closeLen = joined.toString("latin1", at).match(/^<\/head>/i)[0].length;
-      const head = apply(joined.subarray(0, at + closeLen).toString("utf8"));
-      return [Buffer.concat([Buffer.from(head, "utf8"), joined.subarray(at + closeLen)])];
+      const head = apply(joined.subarray(0, boundary).toString("utf8"));
+      return [Buffer.concat([Buffer.from(head, "utf8"), joined.subarray(boundary)])];
     },
     /** @returns {Buffer[]} whatever is still buffered (no `</head>` seen) */
     flush() {

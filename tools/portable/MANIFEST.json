@@ -1,0 +1,42 @@
+{
+  "format": "AEONIMUS-PUBLIC-SOURCE-1",
+  "origin": "Vanessa Henize",
+  "origin_id": "VANESSA::AEONIMUS::VH012",
+  "files": [
+    {
+      "path": "README.md",
+      "size": 3596,
+      "sha256": "93c636a393850157eba7d0698d34501e71e8e249d938ce69972ba131103f0899"
+    },
+    {
+      "path": "SOURCE_REPOSITORIES.json",
+      "size": 1535,
+      "sha256": "04758381352c7d48037673ce00b5ab4a937fa1bd2d9c95d04fe2ff6547b01d64"
+    },
+    {
+      "path": "START_HERE.py",
+      "size": 22605,
+      "sha256": "d2b12c4d529aef73d37f55152e6b761c39840ed2d99af2b189847ed0c0e4b27a"
+    },
+    {
+      "path": "SYNC_GITHUB.py",
+      "size": 3764,
+      "sha256": "d76e5432c1a3b3a7777e2b510b21e5845630ad2decb25ea7e887fa894d113ff4"
+    },
+    {
+      "path": "example_sources/continuity.md",
+      "size": 411,
+      "sha256": "e3c4ca2684406fcb1e504e3e46c26ddcefab2eece801b3d2d6c5e9942db492e0"
+    },
+    {
+      "path": "test_github_sync.py",
+      "size": 2293,
+      "sha256": "1f1524b58cf3dcc24377f774e7a5fb1b53256212163666c98c613482b7aacceb"
+    },
+    {
+      "path": "test_kernel.py",
+      "size": 6876,
+      "sha256": "5b96d0f42e7c39aeb882c84dd5a901c6fe7801ba5e1b8b1b28c491f2e3ac4567"
+    }
+  ]
+}
