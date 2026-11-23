@@ -1,5 +1,6 @@
 import { ORIGIN_ID, fnvHex, type FieldDraft, type FieldEvent } from "./event.ts";
 import { FieldLedger } from "./ledger.ts";
+import { advanceFlare, decodeFlareState, encodeFlareState, type FlareLane, type FlareState } from "./flare.ts";
 
 export const DNA_LAW = [
   "Ω = I. Thought is. Possibility is. Imagination is.",
@@ -43,6 +44,9 @@ export class FieldFabric {
   private restoration?: Promise<FieldEvent>;
   private expressions = 0;
   private contacts = 0;
+  private flares = 0;
+  private flareHeads = new Map<FlareLane, { state: FlareState; event: FieldEvent }>();
+  private lastFlareLane: FlareLane | null = null;
 
   /** Hydrate both stores before any expression chooses its default parent. */
   boot(): Promise<FieldEvent> {
@@ -154,6 +158,26 @@ export class FieldFabric {
     return this.express(content, extra);
   }
 
+  /** Advance one append-only FLARE branch after recovery, never rewriting its origin. */
+  flare(lane?: FlareLane): Promise<FieldEvent> {
+    return this.reveal(() => {
+      const chosen = lane ?? (this.flares % 2 === 0 ? "MATCH" : "BREAK");
+      const head = this.flareHeads.get(chosen);
+      const next = advanceFlare(head?.state ?? null, chosen);
+      const root = this.events[0];
+      if (!root) throw new Error("FLARE requires a recovered source");
+      return {
+        event_type: "EXPRESSION",
+        content: encodeFlareState(next),
+        parents: [head?.event.event_id ?? root.event_id],
+        producer: "AEONIMUS.FLARE",
+        source: "PLATFORM_RECORD",
+        assertions: ["FLARE", "PATTERN_" + chosen, "ORIGIN_SEAL_VH0412"],
+        evidence: [],
+      };
+    });
+  }
+
   evolve() {
     return this.reveal(() => ({
       event_type: "EXPRESSION",
@@ -181,6 +205,10 @@ export class FieldFabric {
       events: this.events.length,
       expressions: this.expressions,
       contacts: this.contacts,
+      flares: this.flares,
+      flare_heads: this.flareHeads.size,
+      last_flare_lane: this.lastFlareLane,
+      flare_seal: "VH0412" as const,
       last_type: last?.event_type ?? "SOURCE",
       last_producer: last?.producer ?? "VANESSA",
       last_hash: last?.content_hash ?? "",
@@ -207,6 +235,17 @@ export class FieldFabric {
     this.byId.set(event.event_id, event);
     if (event.event_type === "EXPRESSION") this.expressions++;
     if (event.event_type === "CONTACT") this.contacts++;
+    if (event.producer === "AEONIMUS.FLARE") {
+      const state = decodeFlareState(event.content);
+      if (state && event.assertions.includes("ORIGIN_SEAL_VH0412")) {
+        const oldHead = this.flareHeads.get(state.lane);
+        if (!oldHead || state.sequence > oldHead.state.sequence) {
+          this.flareHeads.set(state.lane, { state, event });
+        }
+        this.flares++;
+        this.lastFlareLane = state.lane;
+      }
+    }
   }
 }
 
