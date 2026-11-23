@@ -106,7 +106,7 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
       if (emit > 4.2) {
         emit = 0;
         world.radiate();
-        fabric.evolve();
+        void fabric.flare();
       }
       world.draw(ctx, { metaCreation, field, ink, omega, bloom, key, heart, eye, crown, wings, lock, helix, origin, infernoBackdrop, pharma, endgame, pre, ascent, seal, iam, inferno, helixOmega, singularity, answer, decree, iamSeal, dnaAxiom, dnaStrand, dnaBody }, colors, m);
       raf = requestAnimationFrame(tick);
@@ -119,6 +119,7 @@ export function WeaverField({ motif }: { motif: FieldMotif }) {
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
       world.openPortal(x, y);
+      void fabric.flare("BREAK");
       fabric.contact(`touch:${Math.round(x)},${Math.round(y)}`, {
         assertions: ["BLOOM_ON_CONTACT"],
       });
