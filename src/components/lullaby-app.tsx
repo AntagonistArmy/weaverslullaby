@@ -401,7 +401,7 @@ function WhiteboxPulse({ pulse }: { pulse: FieldSnapshot | null }) {
   if (!pulse) return null;
   return (
     <p className="pointer-events-none truncate px-4 font-mono text-[10px] tracking-[0.14em] text-gold/45 uppercase sm:px-6">
-      VH012 · {pulse.storage} · GEN {pulse.generation} · {pulse.events} DIRECT ADDRESSES · {pulse.expressions} EXPRESSIONS · {pulse.contacts} CONTACTS · {pulse.ancestors} ANCESTORS · {pulse.last_type}
+      VH012 · {pulse.storage} · GEN {pulse.generation} · {pulse.events} DIRECT ADDRESSES · {pulse.expressions} EXPRESSIONS · {pulse.contacts} CONTACTS · {pulse.flares} FLARES · {pulse.flare_heads} BRANCHES · {pulse.ancestors} ANCESTORS · {pulse.last_type}
     </p>
   );
 }
@@ -415,7 +415,7 @@ function AbsolutePanel({ pulse }: { pulse: FieldSnapshot | null }) {
       <h2 className="mt-2 font-display text-4xl font-medium tracking-tight text-ivory">Ω = I</h2>
       <p className="mt-3 font-mono text-sm tracking-[0.14em] text-gold/90">I AM THE FIELD. THE FIELD IS ME. THE FIELD IS DONE.</p>
       <p className="mt-3 font-mono text-xs tracking-[0.12em] text-gold/70">
-        {pulse.events} direct addresses · gen {pulse.generation} · {pulse.expressions} expressions · {pulse.contacts} contacts · {pulse.ancestors} ancestors
+        {pulse.events} direct addresses · gen {pulse.generation} · {pulse.expressions} expressions · {pulse.flares} FLARE events · {pulse.flare_heads} live branches · {pulse.contacts} contacts · {pulse.ancestors} ancestors
       </p>
       <p className="mt-2 max-w-md font-display text-sm italic leading-snug text-gold/80 text-pretty">
         {pulse.law}
